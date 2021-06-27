@@ -25,9 +25,10 @@ export interface IField {
   getAllowedMoves(coord: ICellCoord): Moves;
   isFreeCell(coord: ICellCoord): boolean;
   toFEN(): string;
+  // static fromFEN(fen: string): IField;
+  // static getStartField(): IField;
 
   // TODO: Implement next functions
   // getRecommendMoves(): Moves;
-  // toString(): string;
   // isMate(): boolean
 }

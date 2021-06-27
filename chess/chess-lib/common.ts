@@ -1,5 +1,11 @@
 import { FigureType } from './figure-type';
 import { Vector } from './vector';
+import { IFigure } from './ifigure';
+import { ChessColor } from './chess-color';
+import { Queen } from './figures/queen';
+import { Rook } from './figures/rook';
+import { Bishop } from './figures/bishop';
+import { Knight } from './figures/knight';
 
 export enum LOCALES {
   RU,
@@ -10,6 +16,10 @@ export class COMMON {
   static NOVEMDECIMAL_BASE = 19;
   static BOARD_SIZE = 8;
   static DEFAULT_LOCALE = LOCALES.EN;
+  // TODO: после реализации всех фигур - вернуть нормальную стартовую строку
+  static START_POSITION_FEN = 'rnbq1bnr/8/8/8/8/8/8/RNBQ1BNR w KQkq - 0 1';
+  // static START_POSITION_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+
   static FIGURE_SHORT_NAMES = new Map([
     // TODO: переписать красиво, чтобы удобно было обращаться к элементам
     [
@@ -34,6 +44,21 @@ export class COMMON {
         [FigureType.pawn, 'П'],
       ]),
     ],
+  ]);
+  static FIGURE_FROM_CHAR = new Map<string, IFigure>([
+    // TODO: расскоментить после реализации фигур
+    // ['k', new King(ChessColor.black)],
+    // ['K', new King(ChessColor.white)],
+    // ['p', new Pawn(ChessColor.black)],
+    // ['P', new Pawn(ChessColor.white)],
+    ['q', new Queen(ChessColor.black)],
+    ['Q', new Queen(ChessColor.white)],
+    ['r', new Rook(ChessColor.black)],
+    ['R', new Rook(ChessColor.white)],
+    ['b', new Bishop(ChessColor.black)],
+    ['B', new Bishop(ChessColor.white)],
+    ['n', new Knight(ChessColor.black)],
+    ['N', new Knight(ChessColor.white)],
   ]);
   static FIGURE_COST = new Map([
     [FigureType.king, 900],

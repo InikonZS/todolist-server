@@ -8,6 +8,7 @@ import { IField } from './ifield';
 import { IFigure } from './ifigure';
 import { IPosition } from './iPosition';
 import { Moves } from './moves';
+import { Position } from './position';
 
 export class Field implements IField {
   private position: IPosition;
@@ -119,6 +120,9 @@ export class Field implements IField {
     result.push(this.isLongWhiteCastling ? 'Q' : '');
     result.push(this.isShortBlackCastling ? 'k' : '');
     result.push(this.isLongBlackCastling ? 'q' : '');
+    if (!(this.isShortWhiteCastling || this.isLongWhiteCastling || this.isShortBlackCastling || this.isLongBlackCastling)) {
+      result.push('-');
+    }
     result.push(' ');
     result.push(this.pawnTresspassing === null ? '-' : this.pawnTresspassing.toString());
     result.push(' ');
@@ -126,6 +130,62 @@ export class Field implements IField {
     result.push(' ');
     result.push(String(this.moveNumber));
     return result.join('');
+  }
+  static fromFEN(fen: string): IField {
+    const fenPartial = fen.split(' ');
+    let x = 0;
+    let y = 0;
+    const position = new Position();
+    let playerColor: ChessColor;
+    let isShortWhiteCastling: boolean = false;
+    let isLongWhiteCastling: boolean = false;
+    let isShortBlackCastling: boolean = false;
+    let isLongBlackCastling: boolean = false;
+    let pawnTresspassing: CellCoord | null = null;
+    let fiftyRuleCount: number = 0;
+    let moveNumber: number = 1;
+    for (let k = 0; k < fenPartial[0].length; k++) {
+      const fenItem = fenPartial[0].charAt(k);
+      if (fenItem == '/') {
+        x = 0;
+        y++;
+      } else {
+        if (fenItem >= '1' && fenItem <= '8') {
+          x += Number(fenItem);
+        } else {
+          position.addFigure(new CellCoord(x, y), COMMON.FIGURE_FROM_CHAR.get(fenItem));
+        }
+      }
+    }
+    playerColor = fenPartial[1] == 'w' ? ChessColor.white : ChessColor.black;
+    if (fenPartial[2] != '-') {
+      for (let k = 0; k < fenPartial[2].length; k++) {
+        const castlingFlag = fenPartial[0].charAt(k);
+        switch (castlingFlag) {
+          case 'K':
+            isShortWhiteCastling = true;
+            break;
+          case 'Q':
+            isLongWhiteCastling = true;
+            break;
+          case 'k':
+            isShortBlackCastling = true;
+            break;
+          case 'q':
+            isLongBlackCastling = true;
+            break;
+        }
+      }
+    }
+    if (fenPartial[3] != '-') {
+      pawnTresspassing = CellCoord.fromString(fenPartial[3]);
+    }
+    fiftyRuleCount = Number(fenPartial[4]);
+    moveNumber = Number(fenPartial[5]);
+    return new Field(position, playerColor, isShortWhiteCastling, isLongWhiteCastling, isShortBlackCastling, isLongWhiteCastling, pawnTresspassing, fiftyRuleCount, moveNumber);
+  }
+  static getStartField(): IField {
+    return Field.fromFEN(COMMON.START_POSITION_FEN);
   }
 
   // TODO: Implement next functions
