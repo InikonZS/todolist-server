@@ -69,6 +69,8 @@ class ChessGame {
     this.players = [];
     this.currentPlayerIndex = 0;
     this.winner = '';
+    this.model.setFromStrings(initialField);
+    this.model.clearData();
   }
 
   getField() {

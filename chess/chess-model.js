@@ -565,6 +565,12 @@ class FieldModel {
   moveAllowedChange() {
     this.moveAllowed = !this.moveAllowed;
   }
+
+  clearData() {
+    this.currentColor = 1;
+    this.moveAllowed = false;
+    this.currentFigure = '';
+  }
 }
 
 module.exports = { FieldModel }

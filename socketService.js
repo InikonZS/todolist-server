@@ -288,7 +288,7 @@ class ChatService {
       if (currentUser.login) {
         chessGame.clearData();
         console.log(params.messageText);
-        this.clients.forEach(it => it.connection.sendUTF(JSON.stringify({ type: 'chess-events', method: "stopGame", stop: true })));
+        this.clients.forEach(it => it.connection.sendUTF(JSON.stringify({ type: 'chess-events', method: "stopGame", stop: params.messageText })));
       }
     }
   }
