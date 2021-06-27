@@ -172,6 +172,17 @@ class ChatService {
       }
     }
   }
+  renameUser(connection, params) {
+    const currentClient = this.clients.find(it => it.connection == connection);
+    if (currentClient) {
+      let currentUser = currentClient.userData;
+      if (currentUser) {
+        dbService.db.collection('users').updateOne({login:currentUser.login},{$set : {login:params.messageText}})
+        this.clients.forEach(it => it.connection.sendUTF(JSON.stringify({ type: 'renameUser', senderNick: currentUser.login, messageText: params.messageText })));
+        
+      }
+    }
+  }
 
   closeConnection(connection) {
     this.clients = this.clients.filter(it => it.connection != connection);
