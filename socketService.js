@@ -151,7 +151,7 @@ class ChatService {
       if (currentUser) {
         crossGame.setPlayers(currentUser.login);
         chessGame.setPlayers(currentUser.login);
-        this.clients.forEach(it => it.connection.sendUTF(JSON.stringify({ type: 'player', senderNick: currentUser.login, time: Date.now() })));
+        this.clients.forEach(it => it.connection.sendUTF(JSON.stringify({ type: 'player', senderNick: currentUser.login, time: '' })));
       }
     }
   }
@@ -229,9 +229,15 @@ class ChatService {
           console.log('coords', coords);
           chessGame.model.move(coords[0].y, coords[0].x, coords[1].y, coords[1].x)
           console.log('move', chessGame.model.toFEN());
+          let rotate = false;
           // console.log('state', chessGame.model.state);
-          chessGame.changePlayer(currentUser.login, params.messageText);
-          this.clients.forEach(it => it.connection.sendUTF(JSON.stringify({ type: 'chess-events', method: "chessMove", senderNick: currentUser.login, messageText: params.messageText, field: chessGame.model.toFEN(), winner: '', sign: '' })));
+          if(chessGame.model.moveAllowed) {
+            chessGame.changePlayer(currentUser.login, params.messageText);
+            chessGame.model.moveAllowedChange();
+            rotate = true;
+          }
+          
+          this.clients.forEach(it => it.connection.sendUTF(JSON.stringify({ type: 'chess-events', method: "chessMove", senderNick: currentUser.login, messageText: params.messageText, field: chessGame.model.toFEN(), winner: '', rotate: rotate, figure: chessGame.model.currentFigure })));
         }
       }
     }
@@ -259,7 +265,7 @@ class ChatService {
       let currentUser = currentClient.userData;
       if (currentUser.login === params.messageText) {
         console.log(chessGame.getField());
-        this.clients.forEach(it => it.connection.sendUTF(JSON.stringify({ type: 'chess-events', method: "startGame", start: true, field: chessGame.getField() })));
+        this.clients.forEach(it => it.connection.sendUTF(JSON.stringify({ type: 'chess-events', method: "startGame", start: true, field: chessGame.getField(),  time: Date.now() })));
       }
     }
   }

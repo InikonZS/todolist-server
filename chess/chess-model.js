@@ -52,7 +52,7 @@ class FigureModel {
   }
 
   toFen() {
-    console.log('figType ', figType.get(this.type), ' type ', this.type);
+    // console.log('figType ', figType.get(this.type), ' type ', this.type);
     return this.color === 1 ? figType.get(this.type) : figType.get(this.type).toLowerCase();
   }
 }
@@ -254,6 +254,8 @@ class FieldModel {
 
   constructor() {
     this.currentColor = 1;
+    this.moveAllowed = false;
+    this.currentFigure = '';
   }
 
   setAllowed() {
@@ -336,11 +338,21 @@ class FieldModel {
       return;
     }
     if (this.state[fromX][fromY].figure && this.state[fromX][fromY].figure.color === this.currentColor && this.state[fromX][fromY].figure.checkMove(this.state, fromX, fromY, toX, toY)) {
+      const fig = this.state[fromX][fromY].figure;
+      // this.currentFigure = this.toFen(this.state[fromX][fromY].figure);
+      this.currentFigure = this.currentColor === 1 ? figType.get(fig.type) : figType.get(fig.type).toLowerCase();
+      console.log('current Figure: ', this.currentFigure);
       //console.log('moved')
       this.state[toX][toY].figure = this.state[fromX][fromY].figure;
       this.state[fromX][fromY].figure = null;
       this.setState(this.state);
       this.currentColor = (this.currentColor + 1) % 2;
+      if (fromX !== toX || fromY !== toY) {
+        console.log('check player move', fromX, toX, fromY, toY);
+        this.moveAllowed = !this.moveAllowed;
+
+      }
+
       //console.log(this.currentColor, this.getCheckedKing(this.state));
       // if (this.currentColor === 0) {
       //   //this.randomMove();
@@ -519,7 +531,7 @@ class FieldModel {
             freeCount = 0;
           }
           const figure = this.getFigure(coord);
-          console.log('figure ', figure);
+          // console.log('figure ', figure);
           result.push(figure ? figure.toFen() : '');
         }
       }
@@ -550,6 +562,9 @@ class FieldModel {
     return this.state[coord.y][coord.x].figure;
   }
 
+  moveAllowedChange() {
+    this.moveAllowed = !this.moveAllowed;
+  }
 }
 
 module.exports = { FieldModel }
