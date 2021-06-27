@@ -81,6 +81,9 @@ class ChessGame {
     return this.mockFen;
   }
 
+  getPlayersLength() {
+    return this.players.length;
+  }
 }
 
 module.exports = { ChessGame };
