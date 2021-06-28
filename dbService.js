@@ -6,17 +6,24 @@ class DatabaseService{
     this.db = null;
   }
 
-  start(url){
+  async start(url){
     let mongo = new MongoClient(url, {
       useNewUrlParser:true, 
       useUnifiedTopology:true
     });
 
-    mongo.connect().then(()=>{
+    await mongo.connect().then(()=>{
       this.db = mongo.db('chessmate');
-      console.log('connected');
+      console.log('Database connected');
     });
+
+    this.getChannels();
   }
+
+  async getChannels(){    
+    //database.db.collection('channels').findOne({ name: 'test' }, {}).then((res) => {console.log(res)}); 
+    this.dbChannels = await this.db.collection('channels').find().toArray();      
+}
 }
 
 module.exports = new DatabaseService();

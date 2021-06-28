@@ -110,11 +110,24 @@ class ChatService {
   constructor() {
     this.serviceName = 'chat';
     this.clients = [];
-    this.channels = [
-      new ChatChannel('qq'),
-      new ChatChannel('ww')
-    ];
+    this.channels = [];
     this.players = [];
+
+    setTimeout(() => {
+      this.channels = dbService.dbChannels.map(channel => {       
+        return new ChatChannel(channel.name, channel._id); 
+      });
+
+    }, 1000);   
+  }
+
+  async addChannel(connection, params) {     
+    const currentClient = this.clients.find(it => it.connection == connection);
+    if (currentClient) {
+      let res = await dbService.db.collection('channels').insertOne({ name: params.channelName, msgArr: ['Welcome!'] });
+      this.channels.push(new ChatChannel(params.channelName, res.ops[0]._id));       
+    }
+    this.clients.forEach(it => it.connection.sendUTF(JSON.stringify({ type: 'updateChannelList'}))); 
   }
 
   userList(connection, params) {
@@ -333,9 +346,11 @@ class ChatChannel {
    * 
    * @param {string} name 
    */
-  constructor(name) {
+   constructor(name, id) {
     this.name = name;
+    this.id = id;
     this.clients = [];
+    this.messages = [];
   }
   joinUser(connection, params) {
     authService.getUserBySessionId(params.sessionId).then(sessionData => {
