@@ -22,6 +22,7 @@ class ChessGame {
     this.players = [];
     this.currentPlayerIndex = 0;
     this.winner = '';
+    this.gameMode = '';
   }
 
   setPlayers(player) {
@@ -38,37 +39,18 @@ class ChessGame {
     this.currentPlayerIndex = this.currentPlayerIndex === 0 ? 1 : 0;
   }
 
-  changePlayer(player, coords) {
+  changePlayer(player) {
     if (this.players.length === 2) {
-      if (!this.winner) {
         if (player === this.players[this.currentPlayerIndex]) {
-          const figCoords = JSON.parse(coords);
-          // let oldCell = this.field[figCoords[0].y][figCoords[0].x];
-          // console.log('oldCell', oldCell);
-          // if (oldCell) {
-          //   this.field[figCoords[1].y][figCoords[1].x] = oldCell;
-          //   this.field[figCoords[0].y][figCoords[0].x] = '';
-          //   console.log(this.field, oldCell);
-          //   this.setCurrentPlayer();
-          // }
           this.setCurrentPlayer();
-          // this.field[coords.y][coords.x] = this.signs[this.currentPlayerIndex];
-          // this.checkWinner(coords, this.signs[this.currentPlayerIndex]);
-          // this.currentSign = this.signs[this.currentPlayerIndex];
-
-        }
       }
     }
-  }
-
-  getAllowedMoves() {
-    return [{ x: 0, y: 5 }, { x: 0, y: 4 }]
   }
 
   clearData() {
     this.players = [];
     this.currentPlayerIndex = 0;
-    this.winner = '';
+    this.gameMode = '';
     this.model.setFromStrings(initialField);
     this.model.clearData();
   }
@@ -77,12 +59,12 @@ class ChessGame {
     return this.fen;
   }
 
-  getMockField() {
-    return this.mockFen;
-  }
-
   getPlayersLength() {
     return this.players.length;
+  }
+
+  setGameMode(gameMode) {
+    this.gameMode = gameMode;
   }
 }
 

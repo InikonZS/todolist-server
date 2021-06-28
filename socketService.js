@@ -152,6 +152,7 @@ class ChatService {
         crossGame.setPlayers(currentUser.login);
         if (!chessGame.getPlayersLength()) {
           chessGame.setPlayers(currentUser.login);
+          chessGame.model.setGameMode(params.mode)
           this.clients.forEach(it => it.connection.sendUTF(JSON.stringify({ type: 'player', senderNick: currentUser.login, time: '' })));
         } else if (chessGame.getPlayersLength() && params.mode === 'network') {
           chessGame.setPlayers(currentUser.login);
@@ -242,18 +243,19 @@ class ChatService {
         console.log(chessGame.getCurrentPlayer(), currentUser.login);
         if (chessGame.getCurrentPlayer() === currentUser.login) {
           const coords = JSON.parse(params.messageText);
-          console.log('coords', coords);
           chessGame.model.move(coords[0].y, coords[0].x, coords[1].y, coords[1].x)
-          console.log('move', chessGame.model.toFEN());
           let rotate = false;
           // console.log('state', chessGame.model.state);
           if (chessGame.model.moveAllowed) {
-            chessGame.changePlayer(currentUser.login, params.messageText);
+            if (chessGame.model.gameMode !== 'bot') {
+              chessGame.changePlayer(currentUser.login, params.messageText);
+            }
             chessGame.model.moveAllowedChange();
             rotate = true;
           }
 
-          this.clients.forEach(it => it.connection.sendUTF(JSON.stringify({ type: 'chess-events', method: "chessMove", senderNick: currentUser.login, messageText: params.messageText, field: chessGame.model.toFEN(), winner: '', rotate: rotate, figure: chessGame.model.currentFigure })));
+          this.clients.forEach(it => it.connection.sendUTF(JSON.stringify({ type: 'chess-events', method: "chessMove", senderNick: currentUser.login, messageText: params.messageText, field: chessGame.model.toFEN(), winner: '', rotate: rotate, figure: chessGame.model.playFigures, moves: chessGame.model.figureMoves, king: chessGame.model.kingPos })));
+          chessGame.model.clearFigureMoves();
         }
       }
     }
