@@ -52,7 +52,7 @@ class FigureModel {
   }
 
   toFen() {
-    console.log('figType ', figType.get(this.type), ' type ', this.type);
+    // console.log('figType ', figType.get(this.type), ' type ', this.type);
     return this.color === 1 ? figType.get(this.type) : figType.get(this.type).toLowerCase();
   }
 }
@@ -254,6 +254,11 @@ class FieldModel {
 
   constructor() {
     this.currentColor = 1;
+    this.moveAllowed = false;
+    this.playFigures = [];
+    this.gameMode = '';
+    this.figureMoves = [];
+    this.kingPos = null;
   }
 
   setAllowed() {
@@ -336,18 +341,28 @@ class FieldModel {
       return;
     }
     if (this.state[fromX][fromY].figure && this.state[fromX][fromY].figure.color === this.currentColor && this.state[fromX][fromY].figure.checkMove(this.state, fromX, fromY, toX, toY)) {
-      //console.log('moved')
+      const fig = this.state[fromX][fromY].figure;
+      // this.currentFigure = this.toFen(this.state[fromX][fromY].figure);
+      this.playFigures.push(this.currentColor === 1 ? figType.get(fig.type) : figType.get(fig.type).toLowerCase());
       this.state[toX][toY].figure = this.state[fromX][fromY].figure;
       this.state[fromX][fromY].figure = null;
       this.setState(this.state);
       this.currentColor = (this.currentColor + 1) % 2;
-      //console.log(this.currentColor, this.getCheckedKing(this.state));
-      // if (this.currentColor === 0) {
-      //   //this.randomMove();
-      //   this.logicMove((cur, next) => {
-      //     return this.logic(cur, next);
-      //   });
-      // }
+      if (fromX !== toX || fromY !== toY) {
+        this.moveAllowed = !this.moveAllowed;
+        const arr = [];
+        arr.push(new Vector(fromY, fromX));
+        arr.push(new Vector(toY, toX));
+        this.figureMoves.push(arr);
+        console.log('Check king', this.currentColor, this.getCheckedKing(this.state));
+      }
+
+      if (this.currentColor === 0 && this.gameMode === 'bot') {
+        //this.randomMove();
+        this.logicMove((cur, next) => {
+          return this.logic(cur, next);
+        });
+      }
     }
   }
 
@@ -444,9 +459,14 @@ class FieldModel {
   }
 
   getCheckedKing(state) {
+    // this.kingPos = null;
     //console.log(this.getAllowedFroms(this.currentColor));
     let kingPos = this.getKingPos(state, this.currentColor);
-    return this.getCheckedStatus(state, kingPos.x, kingPos.y);
+    const kingStatus = this.getCheckedStatus(state, kingPos.x, kingPos.y);
+    if (kingStatus) this.kingPos = new Vector(kingPos.y, kingPos.x);
+    console.log('king check pos', this.kingPos);
+    // return this.getCheckedStatus(state, kingPos.x, kingPos.y);
+    return kingPos;
   }
 
 
@@ -519,7 +539,7 @@ class FieldModel {
             freeCount = 0;
           }
           const figure = this.getFigure(coord);
-          console.log('figure ', figure);
+          // console.log('figure ', figure);
           result.push(figure ? figure.toFen() : '');
         }
       }
@@ -550,6 +570,26 @@ class FieldModel {
     return this.state[coord.y][coord.x].figure;
   }
 
+  moveAllowedChange() {
+    this.moveAllowed = !this.moveAllowed;
+  }
+
+  clearData() {
+    this.currentColor = 1;
+    this.moveAllowed = false;
+    this.playFigures = [];
+    this.gameMode = '';
+    this.figureMoves = []
+  }
+
+  setGameMode(gameMode) {
+    this.gameMode = gameMode;
+  }
+
+  clearFigureMoves() {
+    this.figureMoves = [];
+    this.playFigures = [];
+  }
 }
 
 module.exports = { FieldModel }
