@@ -13,7 +13,7 @@ class DatabaseService{
     });
 
     mongo.connect().then(()=>{
-      this.db = mongo.db('ChessCodeJam');
+      this.db = mongo.db('chessmate');
       console.log('connected');
     });
   }
