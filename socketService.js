@@ -131,9 +131,9 @@ class ChatService {
 
   joinUser(connection, params) {
     authService.getUserBySessionId(params.sessionId).then(sessionData => {
-      if(sessionData == null) {
+      if (sessionData == null) {
         throw new Error()
-      } 
+      }
       connection.sendUTF(JSON.stringify({ type: 'channelList', channelList: this.channels.map(it => ({ name: it.name })) }));
       return dbService.db.collection('users').findOne({ login: sessionData.login });
     }).then(userData => {
@@ -149,8 +149,8 @@ class ChatService {
           it.connection.sendUTF(JSON.stringify({ type: 'userList', userList: this.clients.map(it => it.userData.login) }));
         });
       }
-    }).catch((error)=>{
-      connection.sendUTF(JSON.stringify({type:'error', description : error}))
+    }).catch((error) => {
+      connection.sendUTF(JSON.stringify({ type: 'error', description: error }))
     });
   }
 
@@ -174,23 +174,23 @@ class ChatService {
 
   leaveUser(connection, params) {
     authService.getUserBySessionId(params.sessionId).then(sessionData => {
-      if(sessionData == null) {
+      if (sessionData == null) {
         throw new Error()
-      } 
+      }
       return dbService.db.collection('users').findOne({ login: sessionData.login });
     }).then(userData => {
       if (userData) {
-        console.log(userData,'userdata')
+        console.log(userData, 'userdata')
         this.clients = this.clients.filter((client => client.userData.login !== userData.login));
         const response = JSON.stringify({ type: 'userList', userList: this.clients.map(it => it.userData.login) })
-        console.log(response,'response')
+        console.log(response, 'response')
         this.clients.forEach(it => {
           it.connection.sendUTF(response);
         });
 
       }
-    }).catch((error)=>{
-      connection.sendUTF(JSON.stringify({type:'error', description : error}))
+    }).catch((error) => {
+      connection.sendUTF(JSON.stringify({ type: 'error', description: error }))
     });
     // this.clients = this.clients.filter(it => it.connection != connection);
     // this.clients.forEach(it => {
@@ -334,6 +334,18 @@ class ChatService {
       }
     }
   }
+
+  async addChannel(connection, params) {
+    const currentClient = this.clients.find(it => it.connection == connection);
+    if (currentClient) {
+      // let res = await dbService.db.collection('channels').insertOne({ name: params.channelName, msgArr: ['Welcome!'] });
+      this.channels.push(new ChatChannel(params.channelName, this.channels.length));
+    }
+    // this.clients.forEach(it => it.connection.sendUTF(JSON.stringify({ type: 'updateChannelList', }))); 
+    const response = JSON.stringify(new ChannelListResponse(this.channels));
+    this.clients.forEach(it => it.connection.sendUTF(response));
+  }
+
 }
 
 function originIsAllowed(origin) {
@@ -348,7 +360,7 @@ class ChannelListResponse {
    */
   constructor(channels) {
     this.type = 'channelList';
-    this.channelList - channels.map(channel => ({ name: channel.name }))
+    this.channelList = channels.map(channel => ({ name: channel.name }))
   }
 }
 
