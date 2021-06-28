@@ -354,8 +354,10 @@ class FieldModel {
         arr.push(new Vector(fromY, fromX));
         arr.push(new Vector(toY, toX));
         this.figureMoves.push(arr);
-        console.log('Check king', this.currentColor, this.getCheckedKing(this.state));
+
       }
+
+      console.log('Check king', this.currentColor, this.getCheckedKing(this.state));
 
       if (this.currentColor === 0 && this.gameMode === 'bot') {
         //this.randomMove();
@@ -462,11 +464,11 @@ class FieldModel {
     // this.kingPos = null;
     //console.log(this.getAllowedFroms(this.currentColor));
     let kingPos = this.getKingPos(state, this.currentColor);
-    const kingStatus = this.getCheckedStatus(state, kingPos.x, kingPos.y);
-    if (kingStatus) this.kingPos = new Vector(kingPos.y, kingPos.x);
-    console.log('king check pos', this.kingPos);
-    // return this.getCheckedStatus(state, kingPos.x, kingPos.y);
-    return kingPos;
+    // const kingStatus = this.getCheckedStatus(state, kingPos.x, kingPos.y);
+    // if (kingStatus) this.kingPos = new Vector(kingPos.y, kingPos.x);
+    // console.log('king check pos', this.kingPos);
+    return this.getCheckedStatus(state, kingPos.x, kingPos.y);
+    // return kingPos;
   }
 
 
@@ -475,6 +477,7 @@ class FieldModel {
     let enemies = this.getAllowedFroms(state, (this.currentColor + 1) % 2);
     enemies.forEach(enemy => {
       let allowed = this.getAllowedE(state, enemy.x, enemy.y);
+      console.log('allowed', allowed);
       allowed.forEach(al => {
         //console.log(al);
         if (al.x === posX && al.y === posY) {

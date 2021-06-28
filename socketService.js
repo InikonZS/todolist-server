@@ -135,7 +135,6 @@ class ChatService {
       return dbService.db.collection('users').findOne({ login: sessionData.login });
     }).then(userData => {
       if (userData) {
-        console.log(userData)
         this.clients.push({ connection, userData });
         this.clients.forEach(it => {
           it.connection.sendUTF(JSON.stringify({ type: 'userList', userList: this.clients.map(it => it.userData.login) }));
@@ -240,12 +239,10 @@ class ChatService {
     if (currentClient) {
       let currentUser = currentClient.userData;
       if (currentUser) {
-        console.log(chessGame.getCurrentPlayer(), currentUser.login);
         if (chessGame.getCurrentPlayer() === currentUser.login) {
           const coords = JSON.parse(params.messageText);
           chessGame.model.move(coords[0].y, coords[0].x, coords[1].y, coords[1].x)
           let rotate = false;
-          // console.log('state', chessGame.model.state);
           if (chessGame.model.moveAllowed) {
             if (chessGame.model.gameMode !== 'bot') {
               chessGame.changePlayer(currentUser.login, params.messageText);
@@ -267,10 +264,8 @@ class ChatService {
       if (currentUser) {
         if (chessGame.getCurrentPlayer() === currentUser.login) {
           const coord = JSON.parse(params.messageText);
-          // console.log('coord', coord);
           const arr = chessGame.model.getAllowed(chessGame.model.state, coord.y, coord.x).map(it => new Vector(it.y, it.x));
-          // console.log('state', chessGame.model.state);
-          // console.log('allowed', arr);
+          console.log(arr);
           this.clients.forEach(it => it.connection.sendUTF(JSON.stringify({ type: 'chess-events', method: "chessFigureGrab", moves: arr })));
         }
       }
@@ -294,7 +289,6 @@ class ChatService {
       let currentUser = currentClient.userData;
       if (currentUser.login) {
         chessGame.clearData();
-        console.log(params.messageText);
         this.clients.forEach(it => it.connection.sendUTF(JSON.stringify({ type: 'chess-events', method: "stopGame", player: currentUser.login, stop: params.messageText })));
       }
     }
