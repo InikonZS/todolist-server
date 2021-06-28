@@ -1,5 +1,3 @@
-Field.fromFEN(fen: string): Field
-константа - стандартная стартовая позиция
 Wrapper, увязка с приложением
 Pawn
 King
