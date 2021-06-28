@@ -130,10 +130,19 @@ class ChatService {
   }
 
   joinUser(connection, params) {
-    connection.sendUTF(JSON.stringify({ type: 'channelList', channelList: this.channels.map(it => ({ name: it.name })) }));
     authService.getUserBySessionId(params.sessionId).then(sessionData => {
+      if(sessionData == null) {
+        throw new Error()
+      } 
+      connection.sendUTF(JSON.stringify({ type: 'channelList', channelList: this.channels.map(it => ({ name: it.name })) }));
       return dbService.db.collection('users').findOne({ login: sessionData.login });
     }).then(userData => {
+      if (this.clients.find((client) => {
+        return client.userData.login == userData.login
+      }
+      )) {
+        throw new Error();
+      }
       if (userData) {
         console.log(userData)
         this.clients.push({ connection, userData });
@@ -141,6 +150,8 @@ class ChatService {
           it.connection.sendUTF(JSON.stringify({ type: 'userList', userList: this.clients.map(it => it.userData.login) }));
         });
       }
+    }).catch((error)=>{
+      connection.sendUTF(JSON.stringify({type:'error', description : error}))
     });
   }
 
@@ -163,10 +174,29 @@ class ChatService {
   }
 
   leaveUser(connection, params) {
-    this.clients = this.clients.filter(it => it.connection != connection);
-    this.clients.forEach(it => {
-      it.connection.sendUTF(JSON.stringify({ type: 'userList', userList: this.clients.map(it => it.userData.login) }));
+    authService.getUserBySessionId(params.sessionId).then(sessionData => {
+      if(sessionData == null) {
+        throw new Error()
+      } 
+      return dbService.db.collection('users').findOne({ login: sessionData.login });
+    }).then(userData => {
+      if (userData) {
+        console.log(userData,'userdata')
+        this.clients = this.clients.filter((client => client.userData.login !== userData.login));
+        const response = JSON.stringify({ type: 'userList', userList: this.clients.map(it => it.userData.login) })
+        console.log(response,'response')
+        this.clients.forEach(it => {
+          it.connection.sendUTF(response);
+        });
+
+      }
+    }).catch((error)=>{
+      connection.sendUTF(JSON.stringify({type:'error', description : error}))
     });
+    // this.clients = this.clients.filter(it => it.connection != connection);
+    // this.clients.forEach(it => {
+    //   it.connection.sendUTF(JSON.stringify({ type: 'userList', userList: this.clients.map(it => it.userData.login) }));
+    // });
   };
 
   sendMessage(connection, params) {
