@@ -154,6 +154,7 @@ export class Field implements IField {
           x += Number(fenItem);
         } else {
           position.addFigure(new CellCoord(x, y), COMMON.FIGURE_FROM_CHAR.get(fenItem));
+          x++;
         }
       }
     }
