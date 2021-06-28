@@ -35,7 +35,7 @@ export class Move implements IMove {
         const fieldMoves = field.getAllowedMoves(this.startPosition);
         const legalDestinations = new Set<String>();
         for (let fieldMove of fieldMoves) {
-          legalDestinations.add(fieldMove.getResultPosition.toString());
+          legalDestinations.add(fieldMove.getResultPosition().toString());
         }
         result = legalDestinations.has(this.getResultPosition().toString());
       }
@@ -56,5 +56,8 @@ export class Move implements IMove {
     } else {
       throw new Error('Error in Move.makeMove: empty start position');
     }
+  }
+  toString(): string {
+    return this.startPosition.toString() + '-' + this.vector.resultPosition(this.startPosition).toString();
   }
 }
