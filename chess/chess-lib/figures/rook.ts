@@ -14,7 +14,7 @@ export class Rook extends Figure {
   }
   getMoves(position: CellCoord, field: IField): Moves {
     const result = new Moves();
-    for (let vector of COMMON.DIAGONAL_MOVES) {
+    for (let vector of COMMON.HV_MOVES) {
       let resultPosition = vector.resultPosition(position);
       let currentVector = vector.copy();
       while (resultPosition.isCorrect() && (field.isFreeCell(resultPosition) || field.getFigure(resultPosition)?.color !== this.color)) {

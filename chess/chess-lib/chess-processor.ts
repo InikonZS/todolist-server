@@ -6,13 +6,16 @@ import { IField } from './ifield';
 import { Move } from './move';
 import { Moves } from './moves';
 import { Vector } from './vector';
+import { HistoryItems } from './history-items';
 
 export class ChessProcessor implements IChessProcessor {
   private field: IField;
   private players: Map<ChessColor, string>;
+  private historyItems: HistoryItems;
   constructor() {
     this.field = Field.getStartField();
     this.players = new Map<ChessColor, string>();
+    this.historyItems = new HistoryItems();
   }
   setPlayer(player: string): boolean {
     if (!this.players.has(ChessColor.white)) {
