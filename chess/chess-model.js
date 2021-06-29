@@ -477,7 +477,7 @@ class FieldModel {
     let enemies = this.getAllowedFroms(state, (this.currentColor + 1) % 2);
     enemies.forEach(enemy => {
       let allowed = this.getAllowedE(state, enemy.x, enemy.y);
-      console.log('allowed', allowed);
+      // console.log('allowed', allowed);
       allowed.forEach(al => {
         //console.log(al);
         if (al.x === posX && al.y === posY) {

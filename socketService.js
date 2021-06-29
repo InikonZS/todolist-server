@@ -106,6 +106,15 @@ class SocketRouter {
   }
 }
 
+class EndPointEnter {
+  constructor(params) {
+    console.log('class params', params);
+    this.params = JSON.parse(params);
+
+    console.log('class this.params', this.params);
+  }
+}
+
 class ChatService {
   constructor() {
     this.serviceName = 'chat';
@@ -254,7 +263,7 @@ class ChatService {
       let currentUser = currentClient.userData;
       if (currentUser) {
         if (crossGame.getCurrentPlayer() === currentUser.login) {
-          crossGame.writeSignToField(currentUser.login, JSON.parse(params.messageText));
+          crossGame.writeSignToField(currentUser.login, params.messageText);
           this.clients.forEach(it => it.connection.sendUTF(JSON.stringify({ type: 'crossMove', senderNick: currentUser.login, messageText: params.messageText, field: crossGame.getField(), winner: crossGame.getWinner(), sign: crossGame.getCurrentSign() })));
           if (crossGame.getWinner()) {
             crossGame.clearData();
@@ -293,10 +302,13 @@ class ChatService {
       let currentUser = currentClient.userData;
       if (currentUser) {
         if (chessGame.getCurrentPlayer() === currentUser.login) {
-          const coord = JSON.parse(params.messageText);
-          const arr = chessGame.model.getAllowed(chessGame.model.state, coord.y, coord.x).map(it => new Vector(it.y, it.x));
-          console.log(arr);
-          this.clients.forEach(it => it.connection.sendUTF(JSON.stringify({ type: 'chess-events', method: "chessFigureGrab", moves: arr })));
+          const coord = new EndPointEnter(params.messageText).params;
+          console.log('coord at Grab', coord);
+          console.log('params', typeof params.messageText);
+          // const coord = JSON.parse(params.messageText);
+            const arr = chessGame.model.getAllowed(chessGame.model.state, coord.y, coord.x).map(it => new Vector(it.y, it.x));
+            console.log(arr);
+            this.clients.forEach(it => it.connection.sendUTF(JSON.stringify({ type: 'chess-events', method: "chessFigureGrab", moves: arr })));
         }
       }
     }
@@ -306,6 +318,7 @@ class ChatService {
     const currentClient = this.clients.find(it => it.connection == connection);
     if (currentClient) {
       let currentUser = currentClient.userData;
+      // const args = new EndPointEnter(params);
       if (currentUser.login === params.messageText) {
         console.log(chessGame.getField());
         this.clients.forEach(it => it.connection.sendUTF(JSON.stringify({ type: 'chess-events', method: "startGame", start: true, field: chessGame.getField(), time: Date.now() })));
