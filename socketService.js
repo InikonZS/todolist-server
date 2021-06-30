@@ -123,6 +123,28 @@ class ChessFigureGrabResponse {
   }
 }
 
+class chessMoveResponse {
+  //login = currentUser.login
+  //messageText = params.messageText
+  //chessGame = chessGame
+
+
+  constructor (login, messageText, chessGame) {
+    this.type = 'chess-events';
+    this.method = 'chessMove';
+    this.senderNick = login;
+    this.messageText = messageText;
+    this.field = chessGame.model.toFEN();
+    this.winner = '';
+    this.rotate = rotate;
+    // TODO -----------change to History
+    this.figure = chessGame.model.playFigures;
+    this.moves = chessGame.model.figureMoves;
+    // TODO -----------end change
+    this.king = chessGame.model.kingPos
+  }
+}
+
 class ChatService {
   constructor() {
     this.serviceName = 'chat';
@@ -298,7 +320,8 @@ class ChatService {
             rotate = true;
           }
 
-          this.clients.forEach(it => it.connection.sendUTF(JSON.stringify({ type: 'chess-events', method: "chessMove", senderNick: currentUser.login, messageText: params.messageText, field: chessGame.model.toFEN(), winner: '', rotate: rotate, figure: chessGame.model.playFigures, moves: chessGame.model.figureMoves, king: chessGame.model.kingPos })));
+          const response = JSON.stringify(new chessMoveResponse(currentUser.login, params.messageText, chessGame))
+          this.clients.forEach(it => it.connection.sendUTF(response));
           chessGame.model.clearFigureMoves();
         }
       }
