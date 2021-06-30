@@ -333,9 +333,9 @@ class ChatService {
                 field: chessProcessor.getField(),
                 winner: '',
                 rotate: rotate,
-                // figure: chessGame.model.playFigures,
-                // moves: chessGame.model.figureMoves,
-                // king: chessGame.model.kingPos,
+                figure: chessGame.model.playFigures,
+                moves: chessGame.model.figureMoves,
+                king: chessGame.model.kingPos,
               })
             )
           );
