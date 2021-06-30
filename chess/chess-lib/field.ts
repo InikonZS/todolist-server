@@ -6,7 +6,7 @@ import { Figures } from './figures';
 import { ICellCoord } from './icell-coord';
 import { IField } from './ifield';
 import { IFigure } from './ifigure';
-import { IPosition } from './iPosition';
+import { IPosition } from './iposition';
 import { Moves } from './moves';
 import { Position } from './position';
 
