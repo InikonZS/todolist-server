@@ -8,6 +8,15 @@ const { CrossGame } = require('./cross');
 const { ChessGame } = require('./chess/chess');
 const { Vector } = require('./chess/vector');
 
+class XchgHistoryItem {
+  constructor(figure, startCell, endCell, time) {
+    this.figure = figure;
+    this.startCell = startCell;
+    this.endCell = endCell;
+    this.time = time;
+  }
+}
+
 const crossGame = new CrossGame();
 const chessGame = new ChessGame();
 class SocketRequest {
@@ -128,8 +137,7 @@ class chessMoveResponse {
   //messageText = params.messageText
   //chessGame = chessGame
 
-
-  constructor (login, messageText, chessGame) {
+  constructor (login, rotate, messageText, chessGame) {
     this.type = 'chess-events';
     this.method = 'chessMove';
     this.senderNick = login;
@@ -137,10 +145,17 @@ class chessMoveResponse {
     this.field = chessGame.model.toFEN();
     this.winner = '';
     this.rotate = rotate;
-    // TODO -----------change to History
-    this.figure = chessGame.model.playFigures;
-    this.moves = chessGame.model.figureMoves;
-    // TODO -----------end change
+    // !!!-----------change to History
+    // this.figure = chessGame.model.playFigures;
+    // this.moves = chessGame.model.figureMoves;
+    this.history = new Array();
+    for(let i = 0; i < chessGame.model.playFigures.length; i++) {
+      this.history.push(new XchgHistoryItem( chessGame.model.playFigures[i],
+                                        chessGame.model.figureMoves[i][0],
+                                        chessGame.model.figureMoves[i][1],
+                                        new Date()));
+    }
+    // !!!-----------end change
     this.king = chessGame.model.kingPos
   }
 }
@@ -320,7 +335,7 @@ class ChatService {
             rotate = true;
           }
 
-          const response = JSON.stringify(new chessMoveResponse(currentUser.login, params.messageText, chessGame))
+          const response = JSON.stringify(new chessMoveResponse(currentUser.login, rotate, params.messageText, chessGame))
           this.clients.forEach(it => it.connection.sendUTF(response));
           chessGame.model.clearFigureMoves();
         }
