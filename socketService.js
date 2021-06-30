@@ -106,12 +106,20 @@ class SocketRouter {
   }
 }
 
-class EndPointEnter {
+class ChessFigureGrabRequest {
   constructor(params) {
-    console.log('class params', params);
-    this.params = JSON.parse(params);
+    const parsedParams = JSON.parse(params);
+    this.figurePos = new Vector(parsedParams.x, parsedParams.y);
 
-    console.log('class this.params', this.params);
+    console.log('class this.params', this.figurePos);
+  }
+}
+
+class ChessFigureGrabResponse {
+  constructor(moves) {
+    this.type = 'chess-events';
+    this.method = 'chessFigureGrab';
+    this.moves = moves;
   }
 }
 
@@ -302,13 +310,11 @@ class ChatService {
       let currentUser = currentClient.userData;
       if (currentUser) {
         if (chessGame.getCurrentPlayer() === currentUser.login) {
-          const coord = new EndPointEnter(params.messageText).params;
-          console.log('coord at Grab', coord);
-          console.log('params', typeof params.messageText);
-          // const coord = JSON.parse(params.messageText);
-            const arr = chessGame.model.getAllowed(chessGame.model.state, coord.y, coord.x).map(it => new Vector(it.y, it.x));
-            console.log(arr);
-            this.clients.forEach(it => it.connection.sendUTF(JSON.stringify({ type: 'chess-events', method: "chessFigureGrab", moves: arr })));
+          const parsedParams = new ChessFigureGrabRequest(params.messageText);
+          const coord = parsedParams.figurePos;
+          const arr = chessGame.model.getAllowed(chessGame.model.state, coord.y, coord.x).map(it => new Vector(it.y, it.x));
+          const response = JSON.stringify(new ChessFigureGrabResponse(arr));
+          this.clients.forEach(it => it.connection.sendUTF(response));
         }
       }
     }
