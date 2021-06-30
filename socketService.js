@@ -107,12 +107,20 @@ class SocketRouter {
   }
 }
 
-class EndPointEnter {
+class ChessFigureGrabRequest {
   constructor(params) {
-    console.log('class params', params);
-    this.params = JSON.parse(params);
+    const parsedParams = JSON.parse(params);
+    this.figurePos = new Vector(parsedParams.x, parsedParams.y);
 
-    console.log('class this.params', this.params);
+    console.log('class this.params', this.figurePos);
+  }
+}
+
+class ChessFigureGrabResponse {
+  constructor(moves) {
+    this.type = 'chess-events';
+    this.method = 'chessFigureGrab';
+    this.moves = moves;
   }
 }
 
@@ -342,12 +350,10 @@ class ChatService {
       let currentUser = currentClient.userData;
       if (currentUser) {
         if (chessGame.getCurrentPlayer() === currentUser.login) {
-          const coord = new EndPointEnter(params.messageText).params;
-          console.log('coord at Grab', coord);
-          console.log('params', typeof params.messageText);
-          // const coord = JSON.parse(params.messageText);
+          const parsedParams = new ChessFigureGrabRequest(params.messageText);
+          const coord = parsedParams.figurePos;
           const arr = chessGame.model.getAllowed(chessGame.model.state, coord.y, coord.x).map((it) => new Vector(it.y, it.x));
-          console.log(arr);
+          const response = JSON.stringify(new ChessFigureGrabResponse(arr));
           const moves = chessProcessor.getMoves(new CellCoord(coord.x, coord.y));
           let resultStr = '';
           let result = [];
@@ -357,9 +363,9 @@ class ChatService {
             result.push(new Vector(destCoord.x, destCoord.y));
           });
           console.log('chessFigureGrab() <- ', new CellCoord(coord.x, coord.y).toString(), ' -> ', resultStr);
-          console.log('...old moves: ', arr);
+          console.log('...old moves: ', response);
           console.log('...new moves: ', result);
-          this.clients.forEach((it) => it.connection.sendUTF(JSON.stringify({ type: 'chess-events', method: 'chessFigureGrab', moves: result })));
+          this.clients.forEach((it) => it.connection.sendUTF(response));
         }
       }
     }
