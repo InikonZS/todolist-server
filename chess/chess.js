@@ -26,8 +26,14 @@ class ChessGame {
   }
 
   setPlayers(player) {
-    if (this.players.length < 2) {
+    console.log('mode: ', this.gameMode, 'player: ', player);
+
+    if (this.players.length === 0) {
       this.players.push(player);
+      console.log('1',this.players);
+    } else if (this.gameMode === 'network' && this.players.length === 1) {
+      this.players.push(player);
+      console.log('2',this.players);
     }
   }
 
@@ -41,8 +47,8 @@ class ChessGame {
 
   changePlayer(player) {
     if (this.players.length === 2) {
-        if (player === this.players[this.currentPlayerIndex]) {
-          this.setCurrentPlayer();
+      if (player === this.players[this.currentPlayerIndex]) {
+        this.setCurrentPlayer();
       }
     }
   }
@@ -65,6 +71,10 @@ class ChessGame {
 
   setGameMode(gameMode) {
     this.gameMode = gameMode;
+  }
+
+  getPlayers() {
+    return this.players;
   }
 }
 
