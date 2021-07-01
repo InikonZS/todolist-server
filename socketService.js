@@ -9,6 +9,14 @@ const { Vector } = require('./chess/vector');
 
 import { CellCoord } from './chess/chess-lib/cell-coord';
 import { ChessProcessor } from './chess/chess-lib/chess-processor';
+class XchgHistoryItem {
+  constructor(figure, startCell, endCell, time) {
+    this.figure = figure;
+    this.startCell = startCell;
+    this.endCell = endCell;
+    this.time = time;
+  }
+}
 
 const crossGame = new CrossGame();
 const chessGame = new ChessGame();
@@ -107,6 +115,85 @@ class SocketRouter {
   }
 }
 
+class JoinUserRequest {
+  constructor(sessionId) {
+    this.sessionId = sessionId;
+  }
+}
+class JoinUserResponse {
+  constructor(type) {
+    this.type = type;
+  }
+}
+
+class JoinUserLoginsResponse extends JoinUserResponse {
+  constructor(logins) {
+    super('userList');
+    this.userList = logins;
+  }
+}
+
+class JoinUserChannelsResponse extends JoinUserResponse {
+  constructor(channels) {
+    super('channelList');
+    this.channelList = channels;
+  }
+}
+
+class JoinUserErrorResponse extends JoinUserResponse {
+  constructor(errDescription) {
+    super('error');
+    this.description = errDescription;
+  }
+}
+
+class LeaveUserRequest {
+  constructor(sessionId) {
+    this.sessionId = sessionId;
+  }
+}
+
+class LeaveUserResponse {
+  constructor(type) {
+    this.type = type;
+  }
+}
+
+class LeaveUserErrorResponse extends LeaveUserResponse {
+  constructor(errDescription) {
+    super('error');
+    this.description = errDescription;
+  }
+}
+
+
+class JoinPlayerRequest {
+  constructor(params) {
+    this.gameMode = params;
+  }
+}
+
+class JoinPlayerResponse {
+  constructor(senderNick, time, players) {
+    this.type = 'player';
+    this.senderNick = senderNick;
+    this.time = time;
+    this.players = players;
+  }
+}
+class UserListResponse {
+  constructor(clients) {
+    this.type = 'userList';
+    this.userList = clients;
+  }
+}
+class PlayerListResponse {
+  constructor(clients) {
+    this.type = 'playerList';
+    this.playerList = clients;
+  }
+}
+
 class ChessFigureGrabRequest {
   constructor(params) {
     const parsedParams = JSON.parse(params);
@@ -124,6 +211,102 @@ class ChessFigureGrabResponse {
   }
 }
 
+class ChessMoveRequest {
+  constructor(params) {
+    const parsedParams = JSON.parse(params);
+    this.figurePos = parsedParams.map((param) => new Vector(param.x, param.y));
+  }
+}
+
+// class ChessMoveResponse {
+//   constructor(senderNick, message, field, winner, rotate, figure, moves, king) {
+//     this.type = 'chess-events';
+//     this.method = 'chessMove';
+//     this.senderNick = senderNick;
+//     this.message = message;
+//     this.field = field;
+//     this.winner = winner;
+//     this.rotate = rotate;
+//     this.figure = figure;
+//     this.moves = moves;
+//     this.king = king;
+//   }
+// }
+
+class ChessStartResponse {
+  constructor(field) {
+    this.type = 'chess-events';
+    this.method = 'startGame';
+    this.start = true;
+    this.time = Date.now()
+    this.field = field;
+  }
+}
+
+class ChessStopResponse {
+  constructor(params, player) {
+    this.type = 'chess-events';
+    this.method = 'stopGame';
+    this.stop = params;
+    this.player = player;
+  }
+}
+
+class ChessRemoveResponse {
+  constructor() {
+    this.type = 'chess-events';
+    this.method = 'removeGame';
+    this.remove = true;
+  }
+}
+
+class SendMessageRequest {
+  constructor(params) {
+    this.messageText = params;
+  }
+}
+
+class SendMessageResponse {
+  constructor(senderNick, messageText) {
+    this.type = 'message';
+    this.senderNick = senderNick;
+    this.messageText = messageText;
+  }
+}
+
+class RenameUserRequest {
+  constructor(login) {
+    this.login = login;
+  }
+}
+
+class RenameUserResponse {
+  constructor(senderNick, messageText) {
+    this.type = 'renameUser',
+      this.senderNick = senderNick;
+    this.messageText = messageText;
+  }
+}
+class ChessMoveResponse {
+  constructor(login, rotate, messageText, chessGame) {
+    this.type = 'chess-events';
+    this.method = 'chessMove';
+    this.senderNick = login;
+    this.messageText = messageText;
+    this.field = chessGame.model.toFEN();
+    this.winner = '';
+    this.rotate = rotate;
+    this.history = new Array();
+    for (let i = 0; i < chessGame.model.playFigures.length; i++) {
+      this.history.push(new XchgHistoryItem(chessGame.model.playFigures[i],
+        chessGame.model.figureMoves[i][0],
+        chessGame.model.figureMoves[i][1],
+        new Date()));
+    }
+    this.king = chessGame.model.kingPos
+  }
+}
+
 class ChatService {
   constructor() {
     this.serviceName = 'chat';
@@ -133,7 +316,9 @@ class ChatService {
   }
 
   userList(connection, params) {
-    connection.sendUTF(JSON.stringify({ type: 'userList', userList: this.clients.map((it) => it.userData.login) }));
+    const clientArr = this.clients.map(it => it.userData.login);
+    const response = JSON.stringify(new UserListResponse(clientArr));
+    connection.sendUTF(response);
   }
 
   channelList(connection, params) {
@@ -141,37 +326,39 @@ class ChatService {
   }
 
   playerList(connection, params) {
-    connection.sendUTF(JSON.stringify({ type: 'playerList', playerList: this.clients.map((it) => it.userData.login) }));
+    const clientArr = this.clients.map(it => it.userData.login);
+    const response = JSON.stringify(new PlayerListResponse(clientArr));
+    connection.sendUTF(JSON.stringify(response));
   }
 
   joinUser(connection, params) {
-    authService
-      .getUserBySessionId(params.sessionId)
-      .then((sessionData) => {
-        if (sessionData == null) {
-          throw new Error();
-        }
-        connection.sendUTF(JSON.stringify({ type: 'channelList', channelList: this.channels.map((it) => ({ name: it.name })) }));
-        return dbService.db.collection('users').findOne({ login: sessionData.login });
-      })
-      .then((userData) => {
-        if (
-          this.clients.find((client) => {
-            return client.userData.login == userData.login;
-          })
-        ) {
-          throw new Error();
-        }
-        if (userData) {
-          this.clients.push({ connection, userData });
-          this.clients.forEach((it) => {
-            it.connection.sendUTF(JSON.stringify({ type: 'userList', userList: this.clients.map((it) => it.userData.login) }));
-          });
-        }
-      })
-      .catch((error) => {
-        connection.sendUTF(JSON.stringify({ type: 'error', description: error }));
-      });
+
+    authService.getUserBySessionId(params.sessionId).then(sessionData => {
+      if (sessionData == null) {
+        throw new Error()
+      }
+      const channels = this.channels.map(it => ({ name: it.name }));
+      const responseChannels = JSON.stringify(new JoinUserChannelsResponse(channels));
+      connection.sendUTF(responseChannels);
+      return dbService.db.collection('users').findOne({ login: sessionData.login });
+    }).then(userData => {
+      if (this.clients.find((client) => {
+        return client.userData.login == userData.login
+      }
+      )) {
+        throw new Error();
+      }
+      if (userData) {
+        this.clients.push({ connection, userData });
+        const clients = this.clients.map(it => it.userData.login);
+        const responseClients = JSON.stringify(new JoinUserLoginsResponse(clients));
+        this.clients.forEach(it => {
+          it.connection.sendUTF(responseClients);
+        });
+      }
+    }).catch((error) => {
+      connection.sendUTF(JSON.stringify(new JoinUserErrorResponse(error)));
+    });
   }
 
   joinPlayer(connection, params) {
@@ -179,44 +366,42 @@ class ChatService {
     if (currentClient) {
       let currentUser = currentClient.userData;
       if (currentUser) {
-        crossGame.setPlayers(currentUser.login);
+        const request = new JoinPlayerRequest(params.mode);
         if (!chessGame.getPlayersLength()) {
-          chessGame.setPlayers(currentUser.login);
-          chessProcessor.setPlayer(currentUser.login);
-          chessGame.model.setGameMode(params.mode);
-          this.clients.forEach((it) => it.connection.sendUTF(JSON.stringify({ type: 'player', senderNick: currentUser.login, time: '' })));
-        } else if (chessGame.getPlayersLength() && params.mode === 'network') {
-          chessGame.setPlayers(currentUser.login);
-          chessProcessor.setPlayer(currentUser.login);
-          this.clients.forEach((it) => it.connection.sendUTF(JSON.stringify({ type: 'player', senderNick: currentUser.login, time: '' })));
+          chessGame.model.setGameMode(request.gameMode);
+          chessGame.setGameMode(request.gameMode);
         }
+
+        crossGame.setPlayers(currentUser.login);
+        chessGame.setPlayers(currentUser.login);
+        const response = JSON.stringify(new JoinPlayerResponse(currentUser.login, '', chessGame.getPlayers()));
+        this.clients.forEach(it => it.connection.sendUTF(response));
       }
     }
   }
 
   leaveUser(connection, params) {
-    authService
-      .getUserBySessionId(params.sessionId)
-      .then((sessionData) => {
-        if (sessionData == null) {
-          throw new Error();
-        }
-        return dbService.db.collection('users').findOne({ login: sessionData.login });
-      })
-      .then((userData) => {
-        if (userData) {
-          console.log(userData, 'userdata');
-          this.clients = this.clients.filter((client) => client.userData.login !== userData.login);
-          const response = JSON.stringify({ type: 'userList', userList: this.clients.map((it) => it.userData.login) });
-          console.log(response, 'response');
-          this.clients.forEach((it) => {
-            it.connection.sendUTF(response);
-          });
-        }
-      })
-      .catch((error) => {
-        connection.sendUTF(JSON.stringify({ type: 'error', description: error }));
-      });
+    authService.getUserBySessionId(params.sessionId).then(sessionData => {
+      if (sessionData == null) {
+        throw new Error()
+      }
+      return dbService.db.collection('users').findOne({ login: sessionData.login });
+    }).then(userData => {
+      if (userData) {
+        console.log(userData, 'userdata')
+        this.clients = this.clients.filter((client => client.userData.login !== userData.login));
+        const clientsArr = this.clients.map(it => it.userData.login);
+        // const response = JSON.stringify({ type: 'userList', userList: this.clients.map(it => it.userData.login) })
+        const response = JSON.stringify(new UserListResponse(clientsArr))
+        console.log(response, 'response')
+        this.clients.forEach(it => {
+          it.connection.sendUTF(response);
+        });
+
+      }
+    }).catch((error) => {
+      connection.sendUTF(JSON.stringify(new LeaveUserErrorResponse(error)));
+    });
     // this.clients = this.clients.filter(it => it.connection != connection);
     // this.clients.forEach(it => {
     //   it.connection.sendUTF(JSON.stringify({ type: 'userList', userList: this.clients.map(it => it.userData.login) }));
@@ -228,7 +413,8 @@ class ChatService {
     if (currentClient) {
       let currentUser = currentClient.userData;
       if (currentUser) {
-        this.clients.forEach((it) => it.connection.sendUTF(JSON.stringify({ type: 'message', senderNick: currentUser.login, messageText: params.messageText })));
+        const response = JSON.stringify(new SendMessageResponse(currentUser.login, new SendMessageRequest(params.messageText).messageText));
+        this.clients.forEach(it => it.connection.sendUTF(response));
       }
     }
   }
@@ -237,8 +423,13 @@ class ChatService {
     if (currentClient) {
       let currentUser = currentClient.userData;
       if (currentUser) {
-        dbService.db.collection('users').updateOne({ login: currentUser.login }, { $set: { login: params.messageText } });
-        this.clients.forEach((it) => it.connection.sendUTF(JSON.stringify({ type: 'renameUser', senderNick: currentUser.login, messageText: params.messageText })));
+        const request = new RenameUserRequest(params.messageText);
+        console.log('request nameChange', request);
+        dbService.db.collection('users').updateOne({ login: currentUser.login }, { $set: { login: params.messageText } })
+        const response = JSON.stringify(new RenameUserResponse(currentUser.login, params.messageText));
+        console.log('response nameChange', response);
+        this.clients.forEach(it => it.connection.sendUTF(JSON.stringify({ type: 'renameUser', senderNick: currentUser.login, messageText: params.messageText })));
+
       }
     }
   }
@@ -306,8 +497,10 @@ class ChatService {
       let currentUser = currentClient.userData;
       if (currentUser) {
         if (chessGame.getCurrentPlayer() === currentUser.login) {
-          const coords = JSON.parse(params.messageText);
-          chessGame.model.move(coords[0].y, coords[0].x, coords[1].y, coords[1].x);
+          // const coords = JSON.parse(params.messageText);
+          const parsedParams = new ChessMoveRequest(params.messageText);
+          const coords = parsedParams.figurePos;
+          chessGame.model.move(coords[0].y, coords[0].x, coords[1].y, coords[1].x)
           const startCoord = new CellCoord(coords[0].x, coords[0].y);
           const endCoord = new CellCoord(coords[1].x, coords[1].y);
           chessProcessor.makeMove(startCoord, endCoord);
@@ -316,29 +509,15 @@ class ChatService {
           let rotate = false;
           if (chessGame.model.moveAllowed) {
             if (chessGame.model.gameMode !== 'bot') {
-              chessGame.changePlayer(currentUser.login, params.messageText);
+              chessGame.changePlayer(currentUser.login);
             }
             chessGame.model.moveAllowedChange();
             rotate = true;
           }
+          // const response = JSON.stringify(new ChessMoveResponse(currentUser.login, params.messageText, chessGame.model.toFEN(), '', rotate, chessGame.model.playFigures, chessGame.model.figureMoves, chessGame.model.kingPos));
 
-          this.clients.forEach((it) =>
-            it.connection.sendUTF(
-              JSON.stringify({
-                type: 'chess-events',
-                method: 'chessMove',
-                senderNick: currentUser.login,
-                messageText: params.messageText,
-                // field: chessGame.model.toFEN(),
-                field: chessProcessor.getField(),
-                winner: '',
-                rotate: rotate,
-                figure: chessGame.model.playFigures,
-                moves: chessGame.model.figureMoves,
-                king: chessGame.model.kingPos,
-              })
-            )
-          );
+          const response = JSON.stringify(new ChessMoveResponse(currentUser.login, rotate, params.messageText, chessGame))
+          this.clients.forEach(it => it.connection.sendUTF(response));
           chessGame.model.clearFigureMoves();
         }
       }
@@ -375,14 +554,13 @@ class ChatService {
     const currentClient = this.clients.find((it) => it.connection == connection);
     if (currentClient) {
       let currentUser = currentClient.userData;
-      // const args = new EndPointEnter(params);
       if (currentUser.login === params.messageText) {
-        // console.log(chessGame.getField());
         chessProcessor.clearData();
         console.log('chessStartGame() -> field: ', chessProcessor.getField());
         console.log('...old field: ', chessGame.getField());
         console.log('...new field: ', chessProcessor.getField());
-        this.clients.forEach((it) => it.connection.sendUTF(JSON.stringify({ type: 'chess-events', method: 'startGame', start: true, field: chessProcessor.getField(), time: Date.now() })));
+        const response = JSON.stringify(new ChessStartResponse(chessGame.getField()));
+        this.clients.forEach(it => it.connection.sendUTF(response));
       }
     }
   }
@@ -394,7 +572,8 @@ class ChatService {
       if (currentUser.login) {
         chessGame.clearData();
         chessProcessor.clearData();
-        this.clients.forEach((it) => it.connection.sendUTF(JSON.stringify({ type: 'chess-events', method: 'stopGame', player: currentUser.login, stop: params.messageText })));
+        const response = JSON.stringify(new ChessStopResponse(params.messageText, currentUser.login));
+        this.clients.forEach(it => it.connection.sendUTF(response));
       }
     }
   }
@@ -406,7 +585,8 @@ class ChatService {
       if (currentUser.login) {
         chessGame.clearData();
         chessProcessor.clearData();
-        this.clients.forEach((it) => it.connection.sendUTF(JSON.stringify({ type: 'chess-events', method: 'removeGame', remove: true, field: chessProcessor.getField() })));
+        const response = JSON.stringify(new ChessRemoveResponse())
+        this.clients.forEach(it => it.connection.sendUTF(response));
       }
     }
   }
