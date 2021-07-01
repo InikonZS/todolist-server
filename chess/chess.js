@@ -30,10 +30,10 @@ class ChessGame {
 
     if (this.players.length === 0) {
       this.players.push(player);
-      console.log('1',this.players);
+      console.log('1', this.players);
     } else if (this.gameMode === 'network' && this.players.length === 1) {
       this.players.push(player);
-      console.log('2',this.players);
+      console.log('2', this.players);
     }
   }
 
@@ -75,6 +75,10 @@ class ChessGame {
 
   getPlayers() {
     return this.players;
+  }
+
+  getGameMode() {
+    return this.gameMode;
   }
 }
 

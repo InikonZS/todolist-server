@@ -218,21 +218,6 @@ class ChessMoveRequest {
   }
 }
 
-// class ChessMoveResponse {
-//   constructor(senderNick, message, field, winner, rotate, figure, moves, king) {
-//     this.type = 'chess-events';
-//     this.method = 'chessMove';
-//     this.senderNick = senderNick;
-//     this.message = message;
-//     this.field = field;
-//     this.winner = winner;
-//     this.rotate = rotate;
-//     this.figure = figure;
-//     this.moves = moves;
-//     this.king = king;
-//   }
-// }
-
 class ChessStartResponse {
   constructor(field) {
     this.type = 'chess-events';
@@ -244,11 +229,32 @@ class ChessStartResponse {
 }
 
 class ChessStopResponse {
-  constructor(params, player) {
+  constructor(player) {
     this.type = 'chess-events';
-    this.method = 'stopGame';
-    this.stop = params;
     this.player = player;
+  }
+}
+
+class ChessDrawAgreeResponse extends ChessStopResponse {
+  constructor(params, player) {
+    super(player)
+    this.method = 'drawAgreeNetwork';
+    this.stop = params;
+  }
+}
+
+class ChessDrawResponse extends ChessStopResponse {
+  constructor(params, player) {
+    super(player)
+    this.method = 'drawNetwork';
+    this.stop = params;
+  }
+}
+class ChessDrawSingleResponse extends ChessStopResponse {
+  constructor(params, player) {
+    super(player)
+    this.method = 'drawSingleGame';
+    this.stop = params;
   }
 }
 
@@ -542,9 +548,16 @@ class ChatService {
     if (currentClient) {
       let currentUser = currentClient.userData;
       if (currentUser.login) {
-        chessGame.clearData();
-        const response = JSON.stringify(new ChessStopResponse(params.messageText, currentUser.login));
-        this.clients.forEach(it => it.connection.sendUTF(response));
+        if (chessGame.getGameMode() !== 'network') {
+          const responseSingle = JSON.stringify(new ChessDrawSingleResponse(params.messageText, currentUser.login));
+          currentClient.connection.sendUTF(responseSingle);
+        } else {
+          const responseDrawAgree = JSON.stringify(new ChessDrawAgreeResponse(params.messageText, currentUser.login));
+          const responseDraw = JSON.stringify(new ChessDrawResponse(params.messageText, currentUser.login));
+          const clients = this.clients.filter((client) => client.userData.login !== currentUser.login)
+          clients.forEach(it => it.connection.sendUTF(responseDrawAgree));
+          currentClient.connection.sendUTF(responseDraw);
+        }
       }
     }
   }
@@ -554,9 +567,9 @@ class ChatService {
     if (currentClient) {
       let currentUser = currentClient.userData;
       if (currentUser.login) {
-        chessGame.clearData();
         const response = JSON.stringify(new ChessRemoveResponse())
         this.clients.forEach(it => it.connection.sendUTF(response));
+        chessGame.clearData();
       }
     }
   }
