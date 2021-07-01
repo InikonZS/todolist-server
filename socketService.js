@@ -218,20 +218,20 @@ class ChessMoveRequest {
   }
 }
 
-class ChessMoveResponse {
-  constructor(senderNick, message, field, winner, rotate, figure, moves, king) {
-    this.type = 'chess-events';
-    this.method = 'chessMove';
-    this.senderNick = senderNick;
-    this.message = message;
-    this.field = field;
-    this.winner = winner;
-    this.rotate = rotate;
-    this.figure = figure;
-    this.moves = moves;
-    this.king = king;
-  }
-}
+// class ChessMoveResponse {
+//   constructor(senderNick, message, field, winner, rotate, figure, moves, king) {
+//     this.type = 'chess-events';
+//     this.method = 'chessMove';
+//     this.senderNick = senderNick;
+//     this.message = message;
+//     this.field = field;
+//     this.winner = winner;
+//     this.rotate = rotate;
+//     this.figure = figure;
+//     this.moves = moves;
+//     this.king = king;
+//   }
+// }
 
 class ChessStartResponse {
   constructor(field) {
@@ -287,12 +287,8 @@ class RenameUserResponse {
     this.messageText = messageText;
   }
 }
-class chessMoveResponse {
-  //login = currentUser.login
-  //messageText = params.messageText
-  //chessGame = chessGame
-
-  constructor (login, rotate, messageText, chessGame) {
+class ChessMoveResponse {
+  constructor(login, rotate, messageText, chessGame) {
     this.type = 'chess-events';
     this.method = 'chessMove';
     this.senderNick = login;
@@ -300,17 +296,13 @@ class chessMoveResponse {
     this.field = chessGame.model.toFEN();
     this.winner = '';
     this.rotate = rotate;
-    // !!!-----------change to History
-    // this.figure = chessGame.model.playFigures;
-    // this.moves = chessGame.model.figureMoves;
     this.history = new Array();
-    for(let i = 0; i < chessGame.model.playFigures.length; i++) {
-      this.history.push(new XchgHistoryItem( chessGame.model.playFigures[i],
-                                        chessGame.model.figureMoves[i][0],
-                                        chessGame.model.figureMoves[i][1],
-                                        new Date()));
+    for (let i = 0; i < chessGame.model.playFigures.length; i++) {
+      this.history.push(new XchgHistoryItem(chessGame.model.playFigures[i],
+        chessGame.model.figureMoves[i][0],
+        chessGame.model.figureMoves[i][1],
+        new Date()));
     }
-    // !!!-----------end change
     this.king = chessGame.model.kingPos
   }
 }
@@ -509,9 +501,9 @@ class ChatService {
             chessGame.model.moveAllowedChange();
             rotate = true;
           }
-          const response = JSON.stringify(new ChessMoveResponse(currentUser.login, params.messageText, chessGame.model.toFEN(), '', rotate, chessGame.model.playFigures, chessGame.model.figureMoves, chessGame.model.kingPos));
+          // const response = JSON.stringify(new ChessMoveResponse(currentUser.login, params.messageText, chessGame.model.toFEN(), '', rotate, chessGame.model.playFigures, chessGame.model.figureMoves, chessGame.model.kingPos));
 
-          const response = JSON.stringify(new chessMoveResponse(currentUser.login, rotate, params.messageText, chessGame))
+          const response = JSON.stringify(new ChessMoveResponse(currentUser.login, rotate, params.messageText, chessGame))
           this.clients.forEach(it => it.connection.sendUTF(response));
           chessGame.model.clearFigureMoves();
         }
