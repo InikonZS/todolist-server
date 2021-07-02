@@ -12,21 +12,39 @@ export class ChessProcessor implements IChessProcessor {
   private field: IField;
   private players: Map<ChessColor, string>;
   private historyItems: HistoryItems;
+  private gameMode: string;
   constructor() {
     this.field = Field.getStartField();
     this.players = new Map<ChessColor, string>();
     this.historyItems = new HistoryItems();
+    this.gameMode = '';
   }
   setPlayer(player: string): boolean {
     if (!this.players.has(ChessColor.white)) {
       this.players.set(ChessColor.white, player);
       return true;
     }
-    if (!this.players.has(ChessColor.black)) {
+    if (!this.players.has(ChessColor.black) && this.gameMode == 'network') {
       this.players.set(ChessColor.black, player);
       return true;
     }
     return false;
+  }
+  getPlayersNumber(): number {
+    return this.players.size;
+  }
+  getPlayers(): Array<string> {
+    const result = new Array<string>();
+    if (this.players.has(ChessColor.white)) {
+      result.push(this.players.get(ChessColor.white));
+    }
+    if (this.players.has(ChessColor.black)) {
+      result.push(this.players.get(ChessColor.black));
+    }
+    return result;
+  }
+  setGameMode(mode: string) {
+    this.gameMode = mode;
   }
   getCurrentPlayer(): string {
     const playerName = this.players.get(this.field.playerColor);

@@ -4,7 +4,7 @@ const dbService = require('./dbService');
 const http = require('http');
 const { ObjectID } = require('mongodb');
 const { CrossGame } = require('./cross');
-const { ChessGame } = require('./chess/chess');
+// !!! const { ChessGame } = require('./chess/chess');
 const { Vector } = require('./chess/vector');
 
 import { CellCoord } from './chess/chess-lib/cell-coord';
@@ -19,7 +19,7 @@ class XchgHistoryItem {
 }
 
 const crossGame = new CrossGame();
-const chessGame = new ChessGame();
+// !!! const chessGame = new ChessGame();
 const chessProcessor = new ChessProcessor();
 class SocketRequest {
   constructor(rawData) {
@@ -288,21 +288,24 @@ class RenameUserResponse {
   }
 }
 class ChessMoveResponse {
-  constructor(login, rotate, messageText, chessGame) {
+  // !!! constructor(login, rotate, messageText, chessGame) {
+  constructor(login, rotate, messageText, chessProcessor) {
     this.type = 'chess-events';
     this.method = 'chessMove';
     this.senderNick = login;
     this.messageText = messageText;
-    this.field = chessGame.model.toFEN();
+    // !!! this.field = chessGame.model.toFEN();
+    this.field = chessProcessor.getField();
     this.winner = '';
     this.rotate = rotate;
-    this.history = new Array();
-    for (let i = 0; i < chessGame.model.playFigures.length; i++) {
-      this.history.push(new XchgHistoryItem(chessGame.model.playFigures[i],
-        chessGame.model.figureMoves[i][0],
-        chessGame.model.figureMoves[i][1],
-        new Date()));
-    }
+    // this.history = new Array();
+    // for (let i = 0; i < chessGame.model.playFigures.length; i++) {
+    //   this.history.push(new XchgHistoryItem(chessGame.model.playFigures[i],
+    //     chessGame.model.figureMoves[i][0],
+    //     chessGame.model.figureMoves[i][1],
+    //     new Date()));
+    // }
+    this.history = chessProcessor.get
     this.king = chessGame.model.kingPos
   }
 }
@@ -367,14 +370,17 @@ class ChatService {
       let currentUser = currentClient.userData;
       if (currentUser) {
         const request = new JoinPlayerRequest(params.mode);
-        if (!chessGame.getPlayersLength()) {
+        if (!chessProcessor.getPlayersNumber()) {
           chessGame.model.setGameMode(request.gameMode);
           chessGame.setGameMode(request.gameMode);
+          chessProcessor.setGameMode(request.gameMode);
         }
 
         crossGame.setPlayers(currentUser.login);
         chessGame.setPlayers(currentUser.login);
-        const response = JSON.stringify(new JoinPlayerResponse(currentUser.login, '', chessGame.getPlayers()));
+        chessProcessor.setPlayer(currentUser.login);
+
+        const response = JSON.stringify(new JoinPlayerResponse(currentUser.login, '', chessProcessor.getPlayers()));
         this.clients.forEach(it => it.connection.sendUTF(response));
       }
     }
@@ -496,7 +502,8 @@ class ChatService {
     if (currentClient) {
       let currentUser = currentClient.userData;
       if (currentUser) {
-        if (chessGame.getCurrentPlayer() === currentUser.login) {
+        // if (chessGame.getCurrentPlayer() === currentUser.login) {
+        if (chessProcessor.getCurrentPlayer() === currentUser.login) {
           // const coords = JSON.parse(params.messageText);
           const parsedParams = new ChessMoveRequest(params.messageText);
           const coords = parsedParams.figurePos;
