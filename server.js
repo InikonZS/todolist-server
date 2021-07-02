@@ -73,10 +73,6 @@ authService.start();
 
 new SocketServer();
 
-// CellCoord описана в TS файле. Ниже 2 строчки подтверждают, что TS компилируется и нормально интегрируется в JS проект.
-const coords = new CellCoord(1, 3);
-console.log(coords.toString());
-
 console.log('Web server running at http://' + app_host + ':' + app_port);
 
 //fetch('http://127.0.0.1:8080/parm?gdfx=54').then((res)=>res.json()).then(res=>console.log(res))

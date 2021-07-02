@@ -7,6 +7,7 @@ import { Move } from './move';
 import { Moves } from './moves';
 import { Vector } from './vector';
 import { HistoryItems } from './history-items';
+import { IHistoryItem } from './ihistory-item';
 
 export class ChessProcessor implements IChessProcessor {
   private field: IField;
@@ -51,11 +52,11 @@ export class ChessProcessor implements IChessProcessor {
   }
   getCurrentPlayer(): string {
     const playerName = this.players.get(this.field.playerColor);
-    return playerName ? playerName : 'none';
+    return playerName ? playerName : (this.gameMode == 'oneScreen' ? this.players.get(ChessColor.white) : 'none');
   }
   clearData(): void {
     this.field = Field.getStartField();
-    this.players = new Map<ChessColor, string>();
+    // this.players = new Map<ChessColor, string>();
   }
   getField(): string {
     return this.field.toFEN();
@@ -63,13 +64,21 @@ export class ChessProcessor implements IChessProcessor {
   makeMove(start_coord: CellCoord, end_coord: CellCoord): boolean {
     const move = new Move(start_coord, new Vector(end_coord.x - start_coord.x, end_coord.y - start_coord.y));
     if (move.isValid(this.field)) {
+      this.historyItems.addItem(move, this.field);
       this.field = move.makeMove(this.field);
       return true;
     } else {
       return false;
     }
   }
+  getHistory(): Array<IHistoryItem> {
+    return this.historyItems.getHistory();
+  }
   getMoves(coord: CellCoord): Moves {
     return this.field.getAllowedMoves(coord);
+  }
+  getKingPos(): CellCoord | null {
+    // TODO: реализовать метод
+    return null;
   }
 }

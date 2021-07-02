@@ -4,22 +4,19 @@ const dbService = require('./dbService');
 const http = require('http');
 const { ObjectID } = require('mongodb');
 const { CrossGame } = require('./cross');
-// !!! const { ChessGame } = require('./chess/chess');
 const { Vector } = require('./chess/vector');
-
+import { CellCoord } from './chess/chess-lib/cell-coord';
 import { ChessProcessor } from './chess/chess-lib/chess-processor';
 
 class XchgHistoryItem {
-  constructor(figure, startCell, endCell, time) {
-    this.figure = figure;
-    this.startCell = startCell;
-    this.endCell = endCell;
-    this.time = time;
+  constructor(historyItem) {
+    this.figure = historyItem.figure;
+    this.startCell = new Vector(historyItem.startCell.x, historyItem.startCell.y);
+    this.endCell = new Vector(historyItem.endCell.x, historyItem.endCell.y);
+    this.time = historyItem.time;
   }
 }
-
 const crossGame = new CrossGame();
-// !!! const chessGame = new ChessGame();
 const chessProcessor = new ChessProcessor();
 class SocketRequest {
   constructor(rawData) {
@@ -296,26 +293,24 @@ class RenameUserResponse {
   }
 }
 class ChessMoveResponse {
-  // !!! constructor(login, rotate, messageText, chessGame) {
     constructor(login, rotate, messageText, chessProcessor) {
     this.type = 'chess-events';
     this.method = 'chessMove';
     this.senderNick = login;
     this.messageText = messageText;
-    // !!! this.field = chessGame.model.toFEN();
     this.field = chessProcessor.getField();
     this.winner = '';
     this.rotate = rotate;
-    // this.history = new Array();
-    // for (let i = 0; i < chessGame.model.playFigures.length; i++) {
-    //   this.history.push(new XchgHistoryItem(chessGame.model.playFigures[i],
-    //     chessGame.model.figureMoves[i][0],
-    //     chessGame.model.figureMoves[i][1],
-    //     new Date()));
+    this.history = new Array();
+    const processorHistory = chessProcessor.getHistory();
+    // !!! ------ начало костыля ------
+    // TODO: должна передаваться полная история, но на клиенте обрабатывается только последний ход, поэтому временно передаём только последний
+    // for (let i = 0; i < processorHistory.length; i++) {
+    //   this.history.push(new XchgHistoryItem(processorHistory[i]));
     // }
-    this.history = chessProcessor.get
-    // TODO: сделать подмену позиции короля
-    this.king = chessGame.model.kingPos
+    this.history.push(new XchgHistoryItem(processorHistory[processorHistory.length - 1]));
+    // !!! ------ конец костыля -------
+    this.king = chessProcessor.getKingPos();
   }
 }
 
@@ -382,20 +377,11 @@ class ChatService {
       let currentUser = currentClient.userData;
       if (currentUser) {
         const request = new JoinPlayerRequest(params.mode);
-        // !!! -----------------
-        // if (!chessGame.getPlayersLength()) {
-        //   chessGame.model.setGameMode(request.gameMode);
-        //   chessGame.setGameMode(request.gameMode);
-        // }
         if (!chessProcessor.getPlayersNumber()) {
           chessProcessor.setGameMode(request.gameMode);
         }
-
         crossGame.setPlayers(currentUser.login);
-        // !!! chessGame.setPlayers(currentUser.login);
         chessProcessor.setPlayer(currentUser.login);
-
-        // !!! const response = JSON.stringify(new JoinPlayerResponse(currentUser.login, '', chessGame.getPlayers()));
         const response = JSON.stringify(new JoinPlayerResponse(currentUser.login, '', chessProcessor.getPlayers()));
         this.clients.forEach(it => it.connection.sendUTF(response));
       }
@@ -506,33 +492,22 @@ class ChatService {
     if (currentClient) {
       let currentUser = currentClient.userData;
       if (currentUser) {
-        // !!! if (chessGame.getCurrentPlayer() === currentUser.login) {
         if (chessProcessor.getCurrentPlayer() === currentUser.login) {  
-          // const coords = JSON.parse(params.messageText);
           const parsedParams = new ChessMoveRequest(params.messageText);
           const coords = parsedParams.figurePos;
-          // !!! chessGame.model.move(coords[0].y, coords[0].x, coords[1].y, coords[1].x)
           const startCoord = new CellCoord(coords[0].x, coords[0].y);
           const endCoord = new CellCoord(coords[1].x, coords[1].y);
           chessProcessor.makeMove(startCoord, endCoord);
           console.log('chessMove() <- ', startCoord.toString() + '-' + endCoord.toString(), ' -> ', chessProcessor.getField());
 
-          let rotate = true;
-          // !!! if (chessGame.model.moveAllowed) {
-          //   if (chessGame.model.gameMode !== 'bot') {
-          //     chessGame.changePlayer(currentUser.login);
-          //   }
-          //   chessGame.model.moveAllowedChange();
-          //   rotate = true;
-          // }
-          // TODO: разобраться с передачей вращения доски
-          // // const response = JSON.stringify(new ChessMoveResponse(currentUser.login, params.messageText, chessGame.model.toFEN(), '', rotate, chessGame.model.playFigures, chessGame.model.figureMoves, chessGame.model.kingPos));
-
-          // !!! const response = JSON.stringify(new ChessMoveResponse(currentUser.login, rotate, params.messageText, chessGame))
-          // TODO: переделать на chessProcessor
+          let rotate = false;
+          if (chessProcessor.getGameMode() !== 'bot') {
+            rotate = true;
+          }
+          const response = JSON.stringify(new ChessMoveResponse(currentUser.login, rotate, params.messageText, chessProcessor))
           this.clients.forEach(it => it.connection.sendUTF(response));
           // chessGame.model.clearFigureMoves();
-          // TODO: разобраться, что за clearFigureMoves();
+          // TODO: Пока закомментил. Судя по другому коду - это история ходов. Не понял, почему она очищается после каждого хода.
         }
       }
     }
@@ -542,11 +517,9 @@ class ChatService {
     if (currentClient) {
       let currentUser = currentClient.userData;
       if (currentUser) {
-        if (chessGame.getCurrentPlayer() === currentUser.login) {
+        if (chessProcessor.getCurrentPlayer() === currentUser.login) {
           const parsedParams = new ChessFigureGrabRequest(params.messageText);
           const coord = parsedParams.figurePos;
-          // !!! const arr = chessGame.model.getAllowed(chessGame.model.state, coord.y, coord.x).map(it => new Vector(it.y, it.x));
-          // const response = JSON.stringify(new ChessFigureGrabResponse(arr));
           const moves = chessProcessor.getMoves(new CellCoord(coord.x, coord.y));
           let resultStr = '';
           let result = [];
@@ -556,10 +529,8 @@ class ChatService {
             result.push(new Vector(destCoord.x, destCoord.y));
           });
           console.log('chessFigureGrab() <- ', new CellCoord(coord.x, coord.y).toString(), ' -> ', resultStr);
-          console.log('...moves: ', result);
-
-          //TODO: уточнить или переделать ответ с учётом JSON.stringify(new ChessFigureGrabResponse(arr));
-          this.clients.forEach(it => it.connection.sendUTF(result));
+          const response = JSON.stringify(new ChessFigureGrabResponse(result));
+          this.clients.forEach(it => it.connection.sendUTF(response));
         }
       }
     }
@@ -570,13 +541,9 @@ class ChatService {
     if (currentClient) {
       let currentUser = currentClient.userData;
       if (currentUser.login === params.messageText) {
-        // !!! const response = JSON.stringify(new ChessStartResponse(chessGame.getField()));
         chessProcessor.clearData();
         console.log('chessStartGame() -> field: ', chessProcessor.getField());
-        console.log('...field: ', chessProcessor.getField());
-        // !!! const response = JSON.stringify(new ChessStartResponse(chessGame.getField()));
-        // TODO: переделать response
-
+        const response = JSON.stringify(new ChessStartResponse(chessProcessor.getField()))
         this.clients.forEach(it => it.connection.sendUTF(response));
       }
     }
@@ -587,7 +554,6 @@ class ChatService {
     if (currentClient) {
       let currentUser = currentClient.userData;
       if (currentUser.login) {
-        // !!! if (chessGame.getGameMode() !== 'network') {
         if (chessProcessor.getGameMode() !== 'network') {
           const responseSingle = JSON.stringify(new ChessDrawSingleResponse(params.messageText, currentUser.login));
           currentClient.connection.sendUTF(responseSingle);
@@ -609,7 +575,6 @@ class ChatService {
       if (currentUser.login) {
         const response = JSON.stringify(new ChessRemoveResponse())
         this.clients.forEach(it => it.connection.sendUTF(response));
-        // !!! chessGame.clearData();
         chessProcessor.clearData();
       }
     }

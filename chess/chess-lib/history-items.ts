@@ -11,4 +11,7 @@ export class HistoryItems {
   addItem(move: IMove, field: IField) {
     this.history.push(new HistoryItem(move, field));
   }
+  getHistory(): Array<IHistoryItem> {
+    return new Array<IHistoryItem>(...this.history);
+  }
 }

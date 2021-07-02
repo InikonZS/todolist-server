@@ -21,13 +21,19 @@
 // chessRemoveGame() -> то же, что и chessStopGame(), но с выдачей fen
 
 import { CellCoord } from './cell-coord';
+import { IHistoryItem } from './ihistory-item';
 import { Moves } from './moves';
 
 export interface IChessProcessor {
   setPlayer(player: string): boolean;
+  getPlayersNumber(): number;
+  getPlayers(): Array<string>;
+  setGameMode(mode: string): void;
+  getGameMode(): string;
   getCurrentPlayer(): string;
   clearData(): void;
   getField(): string;
   makeMove(start_coord: CellCoord, end_coord: CellCoord): boolean;
+  getHistory(): Array<IHistoryItem>;
   getMoves(coord: CellCoord): Moves;
 }
