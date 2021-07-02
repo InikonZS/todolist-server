@@ -46,6 +46,9 @@ export class ChessProcessor implements IChessProcessor {
   setGameMode(mode: string) {
     this.gameMode = mode;
   }
+  getGameMode(): string {
+    return this.gameMode;
+  }
   getCurrentPlayer(): string {
     const playerName = this.players.get(this.field.playerColor);
     return playerName ? playerName : 'none';
