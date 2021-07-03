@@ -8,7 +8,9 @@ const testService = require('./services/testService');
 const todoListService = require('./services/todoList/todoListService');
 const authService = require('./authService');
 
-const { SocketServer } = require('./socketService');
+//const { SocketServer } = require('./socketService');
+
+import {SocketServer} from './socketServer';
 
 const app_port = process.env.app_port || 4040;
 const app_host = process.env.app_host || '127.0.0.1';
