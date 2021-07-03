@@ -70,7 +70,7 @@ export class Field implements IField {
 
   getAllowedMoves(coord: ICellCoord): Moves {
     let figure = this.getFigure(coord);
-    if (figure === undefined) {
+    if (figure === undefined || figure.color != this.playerColor) {
       return new Moves();
     } else {
       return figure.getMoves(coord, this);

@@ -293,7 +293,7 @@ class RenameUserResponse {
   }
 }
 class ChessMoveResponse {
-    constructor(login, rotate, messageText, chessProcessor) {
+    constructor(login, isMove, rotate, messageText, chessProcessor) {
     this.type = 'chess-events';
     this.method = 'chessMove';
     this.senderNick = login;
@@ -308,7 +308,9 @@ class ChessMoveResponse {
     // for (let i = 0; i < processorHistory.length; i++) {
     //   this.history.push(new XchgHistoryItem(processorHistory[i]));
     // }
-    this.history.push(new XchgHistoryItem(processorHistory[processorHistory.length - 1]));
+    if (isMove) {
+      this.history.push(new XchgHistoryItem(processorHistory[processorHistory.length - 1]));
+    }
     // !!! ------ конец костыля -------
     this.king = chessProcessor.getKingPos();
   }
@@ -497,14 +499,13 @@ class ChatService {
           const coords = parsedParams.figurePos;
           const startCoord = new CellCoord(coords[0].x, coords[0].y);
           const endCoord = new CellCoord(coords[1].x, coords[1].y);
-          chessProcessor.makeMove(startCoord, endCoord);
-          console.log('chessMove() <- ', startCoord.toString() + '-' + endCoord.toString(), ' -> ', chessProcessor.getField());
-
-          let rotate = false;
-          if (chessProcessor.getGameMode() !== 'bot') {
-            rotate = true;
+          const isMove = chessProcessor.makeMove(startCoord, endCoord);
+          let rotate = isMove;
+          console.log('chessMove() <- ', startCoord.toString() + '-' + endCoord.toString(), isMove ? 'DONE' : 'ERROR',  ' -> ', chessProcessor.getField());
+          if (chessProcessor.getGameMode() === 'bot') {
+            rotate = false;
           }
-          const response = JSON.stringify(new ChessMoveResponse(currentUser.login, rotate, params.messageText, chessProcessor))
+          const response = JSON.stringify(new ChessMoveResponse(currentUser.login, isMove, rotate, params.messageText, chessProcessor))
           this.clients.forEach(it => it.connection.sendUTF(response));
           // chessGame.model.clearFigureMoves();
           // TODO: Пока закомментил. Судя по другому коду - это история ходов. Не понял, почему она очищается после каждого хода.
