@@ -39,8 +39,9 @@ class AuthService {
         if (res) {
           let sessionData = { login: decodedLogin, session: decodedLogin + (Math.random() * 1000).toFixed(0) };
           console.log(sessionData);
+          console.log('auth res', res);
           return database.db.collection('sessions').insertOne(sessionData).then(() => {
-            return { status: 'ok', session: sessionData.session };
+            return { status: 'ok', session: sessionData.session, login: res.login, avatar: res.avatar };
           });
         } else {
           return { status: 'error' }
