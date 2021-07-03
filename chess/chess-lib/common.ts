@@ -6,6 +6,7 @@ import { Queen } from './figures/queen';
 import { Rook } from './figures/rook';
 import { Bishop } from './figures/bishop';
 import { Knight } from './figures/knight';
+import { King } from './figures/king';
 
 export enum LOCALES {
   RU,
@@ -17,7 +18,7 @@ export class COMMON {
   static BOARD_SIZE = 8;
   static DEFAULT_LOCALE = LOCALES.EN;
   // TODO: после реализации всех фигур - вернуть нормальную стартовую строку
-  static START_POSITION_FEN = 'rnbq1bnr/8/8/8/8/8/8/RNBQ1BNR w KQkq - 0 1';
+  static START_POSITION_FEN = 'rnbqkbnr/8/8/8/8/8/8/RNBQKBNR w KQkq - 0 1';
   // static START_POSITION_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 
   static FIGURE_SHORT_NAMES = new Map([
@@ -47,8 +48,8 @@ export class COMMON {
   ]);
   static FIGURE_FROM_CHAR = new Map<string, IFigure>([
     // TODO: расскоментить после реализации фигур
-    // ['k', new King(ChessColor.black)],
-    // ['K', new King(ChessColor.white)],
+    ['k', new King(ChessColor.black)],
+    ['K', new King(ChessColor.white)],
     // ['p', new Pawn(ChessColor.black)],
     // ['P', new Pawn(ChessColor.white)],
     ['q', new Queen(ChessColor.black)],

@@ -312,7 +312,8 @@ class ChessMoveResponse {
       this.history.push(new XchgHistoryItem(processorHistory[processorHistory.length - 1]));
     }
     // !!! ------ конец костыля -------
-    this.king = chessProcessor.getKingPos();
+    const kingCell = chessProcessor.getKingPos();
+    this.king = new Vector(kingCell.x, kingCell.y);
   }
 }
 

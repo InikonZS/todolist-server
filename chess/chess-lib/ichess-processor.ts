@@ -36,4 +36,5 @@ export interface IChessProcessor {
   makeMove(start_coord: CellCoord, end_coord: CellCoord): boolean;
   getHistory(): Array<IHistoryItem>;
   getMoves(coord: CellCoord): Moves;
+  getKingPos(): CellCoord;
 }

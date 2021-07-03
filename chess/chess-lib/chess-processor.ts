@@ -8,6 +8,7 @@ import { Moves } from './moves';
 import { Vector } from './vector';
 import { HistoryItems } from './history-items';
 import { IHistoryItem } from './ihistory-item';
+import { King } from './figures/king';
 
 export class ChessProcessor implements IChessProcessor {
   private field: IField;
@@ -77,8 +78,13 @@ export class ChessProcessor implements IChessProcessor {
   getMoves(coord: CellCoord): Moves {
     return this.field.getAllowedMoves(coord);
   }
-  getKingPos(): CellCoord | null {
-    // TODO: реализовать метод
-    return null;
+  getKingPos(): CellCoord {
+    const kingStr = new King(this.field.playerColor).toString();
+    for (let coord of this.field.getAllCellCoords()) {
+      if (!this.field.isFreeCell(coord) && this.field.getFigure(coord).toString() === kingStr) {
+        return coord;
+      }
+    }
+    return new CellCoord(-1, -1);
   }
 }
