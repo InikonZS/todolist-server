@@ -1,7 +1,8 @@
-const {MongoClient} = require('mongodb');
+import {Db, MongoClient} from 'mongodb';
 
-class DatabaseService{
-  
+export class DatabaseService{
+  public db: Db;
+
   constructor(){
     this.db = null;
   }
@@ -19,4 +20,8 @@ class DatabaseService{
   }
 }
 
-module.exports = new DatabaseService();
+const _deService = new DatabaseService();
+
+export const dbService = _deService;
+
+module.exports = _deService

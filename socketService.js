@@ -7,6 +7,7 @@ const { CrossGame } = require('./cross');
 const { Vector } = require('./chess/vector');
 import { CellCoord } from './chess/chess-lib/cell-coord';
 import { ChessProcessor } from './chess/chess-lib/chess-processor';
+import {ChatChannel} from './chatChannel';
 
 class XchgHistoryItem {
   constructor(historyItem) {
@@ -609,12 +610,12 @@ class ChannelListResponse {
   }
 }
 
-class ChatChannel {
+//class ChatChannel {
   /**
    * 
    * @param {string} name 
    */
-  constructor(name) {
+/*  constructor(name) {
     this.name = name;
     this.clients = [];
   }
@@ -647,7 +648,7 @@ class ChatChannel {
       }
     }
   }
-}
+}*/
 
 
 
