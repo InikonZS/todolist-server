@@ -31,7 +31,7 @@ class SocketRequest {
   }
 }
 
-class SocketServer {
+export class SocketServer {
   public clients:Array<connection>
   public router: SocketRouter;
 
