@@ -509,9 +509,3 @@ export class ChatService {
   }
 
 }
-
-module.exports = {
-  SocketServer
-}
-
-
