@@ -7,6 +7,7 @@ import { Rook } from './figures/rook';
 import { Bishop } from './figures/bishop';
 import { Knight } from './figures/knight';
 import { King } from './figures/king';
+import { Pawn } from './figures/pawn';
 
 export enum LOCALES {
   RU,
@@ -17,9 +18,7 @@ export class COMMON {
   static NOVEMDECIMAL_BASE = 19;
   static BOARD_SIZE = 8;
   static DEFAULT_LOCALE = LOCALES.EN;
-  // TODO: после реализации всех фигур - вернуть нормальную стартовую строку
-  static START_POSITION_FEN = 'rnbqkbnr/8/8/8/8/8/8/RNBQKBNR w KQkq - 0 1';
-  // static START_POSITION_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+  static START_POSITION_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 
   static FIGURE_SHORT_NAMES = new Map([
     // TODO: переписать красиво, чтобы удобно было обращаться к элементам
@@ -47,11 +46,10 @@ export class COMMON {
     ],
   ]);
   static FIGURE_FROM_CHAR = new Map<string, IFigure>([
-    // TODO: расскоментить после реализации фигур
     ['k', new King(ChessColor.black)],
     ['K', new King(ChessColor.white)],
-    // ['p', new Pawn(ChessColor.black)],
-    // ['P', new Pawn(ChessColor.white)],
+    ['p', new Pawn(ChessColor.black)],
+    ['P', new Pawn(ChessColor.white)],
     ['q', new Queen(ChessColor.black)],
     ['Q', new Queen(ChessColor.white)],
     ['r', new Rook(ChessColor.black)],
@@ -73,6 +71,8 @@ export class COMMON {
   static HV_MOVES = [new Vector(-1, 0), new Vector(1, 0), new Vector(0, -1), new Vector(0, 1)];
   static UP_MOVES = [new Vector(0, -1)];
   static DOWN_MOVES = [new Vector(0, 1)];
+  static UP_DIAG_MOVES = [new Vector(-1, -1), new Vector(1, -1)];
+  static DOWN_DIAG_MOVES = [new Vector(-1, 1), new Vector(1, 1)];
   static KNIGHT_MOVES = [new Vector(-2, -1), new Vector(-1, -2), new Vector(1, -2), new Vector(2, -1), new Vector(2, 1), new Vector(1, 2), new Vector(-1, 2), new Vector(-2, 1)];
 
   constructor() {}
