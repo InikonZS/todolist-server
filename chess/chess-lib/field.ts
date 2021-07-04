@@ -3,6 +3,7 @@ import { CellCoords } from './cell-coords';
 import { ChessColor } from './chess-color';
 import { COMMON } from './common';
 import { Figures } from './figures';
+import { King } from './figures/king';
 import { ICellCoord } from './icell-coord';
 import { IField } from './ifield';
 import { IFigure } from './ifigure';
@@ -64,18 +65,40 @@ export class Field implements IField {
   getPosition(): IPosition {
     return this.position.copy();
   }
+  getKingCoord(): ICellCoord {
+    const kingStr = new King(this.playerColor).toString();
+    for (let figure of this.position.getAllCoordFigures()) {
+      if(figure[1].toString() == kingStr) {
+        return CellCoord.fromString(figure[0]);
+      }
+    }
+    return new CellCoord(-1, -1);
+  }
   getFigure(coord: ICellCoord): IFigure | undefined {
     return this.position.getFigure(coord);
   }
 
-  getAllowedMoves(coord: ICellCoord): Moves {
+  getAllowedMoves(coord: ICellCoord, checkKingDanger: boolean = true): Moves {
     let figure = this.getFigure(coord);
     if (figure === undefined || figure.color != this.playerColor) {
       return new Moves();
     } else {
-      return figure.getMoves(coord, this);
-      // TODO: отфильтровать по корректности здесь, либо в Figure.gerMoves() UPD: Проверять не надо, в генерации для фигуры будем генерировать только корректные
+      if (figure instanceof King) {
+        return figure.getMoves(coord, this, checkKingDanger);
+      } else {
+        return figure.getMoves(coord, this);
+      }
     }
+  }
+  getAttackedCells(): Set<string> {
+    const result = new Set<string>();
+    for (let figure of this.position.getAllCoordFigures()) {
+      const figureMoves = this.getAllowedMoves(CellCoord.fromString(figure[0]), false);
+      for (let figureMove of figureMoves) {
+        result.add(figureMove.getResultPosition().toString());
+      }
+    }
+    return result;
   }
   isFreeCell(coord: ICellCoord): boolean {
     return !this.position.hasFigure(coord);

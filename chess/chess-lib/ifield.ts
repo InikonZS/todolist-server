@@ -25,6 +25,8 @@ export interface IField {
   getAllowedMoves(coord: ICellCoord): Moves;
   isFreeCell(coord: ICellCoord): boolean;
   toFEN(): string;
+  getKingCoord(): ICellCoord;
+  getAttackedCells(): Set<string>;
   // static fromFEN(fen: string): IField;
   // static getStartField(): IField;
 

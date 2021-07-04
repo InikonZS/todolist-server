@@ -79,12 +79,6 @@ export class ChessProcessor implements IChessProcessor {
     return this.field.getAllowedMoves(coord);
   }
   getKingPos(): CellCoord {
-    const kingStr = new King(this.field.playerColor).toString();
-    for (let coord of this.field.getAllCellCoords()) {
-      if (!this.field.isFreeCell(coord) && this.field.getFigure(coord).toString() === kingStr) {
-        return coord;
-      }
-    }
-    return new CellCoord(-1, -1);
+    return this.field.getKingCoord();
   }
 }

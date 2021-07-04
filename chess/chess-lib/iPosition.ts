@@ -13,4 +13,5 @@ export interface IPosition {
   getFigureStringCoord(sCoord: string): IFigure | undefined;
   hasFigureStringCoord(sCoord: string): boolean;
   copy(): IPosition;
+  getAllCoordFigures(): IterableIterator<[string, IFigure]>;
 }

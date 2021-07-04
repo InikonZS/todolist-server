@@ -13,10 +13,12 @@ export class Knight extends Figure {
   }
   getMoves(position: CellCoord, field: IField): Moves {
     const result = new Moves();
-    for (let vector of COMMON.KNIGHT_MOVES) {
-      const resultPosition = vector.resultPosition(position);
-      if (resultPosition.isCorrect() && (field.isFreeCell(resultPosition) || field.getFigure(resultPosition)?.color !== this.color)) {
-        result.add(new Move(position, vector));
+    if (!field.isFreeCell(position) && field.getFigure(position).toString() == this.toString() && field.playerColor == this.color) {
+      for (let vector of COMMON.KNIGHT_MOVES) {
+        const resultPosition = vector.resultPosition(position);
+        if (resultPosition.isCorrect() && (field.isFreeCell(resultPosition) || field.getFigure(resultPosition)?.color !== this.color)) {
+          result.add(new Move(position, vector));
+        }
       }
     }
     return result;

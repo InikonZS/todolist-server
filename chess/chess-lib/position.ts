@@ -21,6 +21,9 @@ export class Position implements IPosition {
   getAllFigures(): Figures {
     return new Figures(this.position.values());
   }
+  getAllCoordFigures(): IterableIterator<[string, IFigure]> {
+    return this.position.entries();
+  }
   deleteFigure(coord: ICellCoord) {
     this.position.delete(coord.toString());
   }
