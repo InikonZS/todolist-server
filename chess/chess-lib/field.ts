@@ -48,7 +48,15 @@ export class Field implements IField {
   }
 
   copy(): IField {
-    return new Field(this.position.copy(), this.playerColor);
+    return new Field( this.position.copy(), 
+                      this.playerColor, 
+                      this.isShortWhiteCastling, 
+                      this.isLongWhiteCastling,
+                      this.isShortBlackCastling,
+                      this.isLongBlackCastling,
+                      this.pawnTresspassing,
+                      this.fiftyRuleCount,
+                      this.moveNumber);
   }
   getAllCellCoords(): CellCoords {
     const result = new CellCoords();
@@ -206,7 +214,7 @@ export class Field implements IField {
     }
     fiftyRuleCount = Number(fenPartial[4]);
     moveNumber = Number(fenPartial[5]);
-    return new Field(position, playerColor, isShortWhiteCastling, isLongWhiteCastling, isShortBlackCastling, isLongWhiteCastling, pawnTresspassing, fiftyRuleCount, moveNumber);
+    return new Field(position, playerColor, isShortWhiteCastling, isLongWhiteCastling, isShortBlackCastling, isLongBlackCastling, pawnTresspassing, fiftyRuleCount, moveNumber);
   }
   static getStartField(): IField {
     return Field.fromFEN(COMMON.START_POSITION_FEN);
