@@ -21,6 +21,7 @@ export interface IField {
   getAllCellCoords(): CellCoords;
   getFigure(coord: ICellCoord): IFigure | undefined;
   getFigures(): Figures;
+  getFiguresCount(): number;
   getPosition(): IPosition;
   getAllowedMoves(coord: ICellCoord): Moves;
   isFreeCell(coord: ICellCoord): boolean;
