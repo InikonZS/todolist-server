@@ -5,6 +5,7 @@ import { IFigure } from './ifigure';
 export interface IPosition {
   addFigure(coord: ICellCoord, figure: IFigure): void;
   getFigure(coord: ICellCoord): IFigure | undefined;
+  getFiguresCount(): number;
   hasFigure(coord: ICellCoord): boolean;
   getAllFigures(): Figures;
   deleteFigure(coord: ICellCoord): void;

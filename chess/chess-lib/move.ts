@@ -1,5 +1,6 @@
 import { ChessColor } from './chess-color';
 import { Field } from './field';
+import { Pawn } from './figures/pawn';
 import { ICellCoord } from './icell-coord';
 import { IField } from './ifield';
 import { IMove } from './imove';
@@ -52,7 +53,16 @@ export class Move implements IMove {
     if (figure) {
       resultPosition.addFigure(targetCell, figure);
       resultPosition.deleteFigure(this.startPosition);
-      return new Field(resultPosition, field.playerColor == ChessColor.white ? ChessColor.black : ChessColor.white);
+      return new Field( resultPosition,
+                        field.playerColor == ChessColor.white ? ChessColor.black : ChessColor.white,
+                        field.isShortWhiteCastling,
+                        field.isLongWhiteCastling,
+                        field.isShortBlackCastling,
+                        field.isLongBlackCastling,
+                        field.pawnTresspassing,
+                        ( figure.toString().toLowerCase() == new Pawn(ChessColor.black).toString() ||
+                          resultPosition.getFiguresCount() < field.getFiguresCount()) ? 0 : field.fiftyRuleCount + 1,
+                        field.moveNumber + (field.playerColor == ChessColor.black ? 1 : 0));
     } else {
       throw new Error('Error in Move.makeMove: empty start position');
     }

@@ -70,6 +70,9 @@ export class Field implements IField {
   getFigures(): Figures {
     return this.position.getAllFigures();
   }
+  getFiguresCount(): number {
+    return this.position.getFiguresCount();
+  }
   getPosition(): IPosition {
     return this.position.copy();
   }
@@ -192,7 +195,7 @@ export class Field implements IField {
     playerColor = fenPartial[1] == 'w' ? ChessColor.white : ChessColor.black;
     if (fenPartial[2] != '-') {
       for (let k = 0; k < fenPartial[2].length; k++) {
-        const castlingFlag = fenPartial[0].charAt(k);
+        const castlingFlag = fenPartial[2].charAt(k);
         switch (castlingFlag) {
           case 'K':
             isShortWhiteCastling = true;

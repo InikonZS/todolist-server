@@ -21,6 +21,9 @@ export class Position implements IPosition {
   getAllFigures(): Figures {
     return new Figures(this.position.values());
   }
+  getFiguresCount(): number {
+    return this.position.size;
+  }
   getAllCoordFigures(): IterableIterator<[string, IFigure]> {
     return this.position.entries();
   }
