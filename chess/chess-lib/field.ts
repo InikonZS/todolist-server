@@ -18,7 +18,7 @@ export class Field implements IField {
   readonly isLongWhiteCastling: boolean;
   readonly isShortBlackCastling: boolean;
   readonly isLongBlackCastling: boolean;
-  readonly pawnTresspassing: CellCoord | null;
+  readonly pawnTresspassing: ICellCoord | null;
   readonly fiftyRuleCount: number;
   readonly moveNumber: number;
   readonly cost: number;

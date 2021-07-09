@@ -24,7 +24,10 @@ export class Pawn extends Figure {
         }
         for (let vector of COMMON.UP_DIAG_MOVES) {
           let resultPosition = vector.resultPosition(position);
-          if (resultPosition.isCorrect() && !field.isFreeCell(resultPosition) && field.getFigure(resultPosition)?.color !== this.color) {
+          if (  resultPosition.isCorrect() && 
+                ((!field.isFreeCell(resultPosition) && field.getFigure(resultPosition)?.color !== this.color) ||
+                 (field.pawnTresspassing !== null && resultPosition.equal(field.pawnTresspassing)))
+             ) {
             result.add(new Move(position, vector));
           }
         }
@@ -48,7 +51,10 @@ export class Pawn extends Figure {
         }
         for (let vector of COMMON.DOWN_DIAG_MOVES) {
           let resultPosition = vector.resultPosition(position);
-          if (resultPosition.isCorrect() && !field.isFreeCell(resultPosition) && field.getFigure(resultPosition)?.color !== this.color) {
+          if (  resultPosition.isCorrect() && 
+                ((!field.isFreeCell(resultPosition) && field.getFigure(resultPosition)?.color !== this.color) ||
+                 (field.pawnTresspassing !== null && resultPosition.equal(field.pawnTresspassing)))
+             ) {
             result.add(new Move(position, vector));
           }
         }

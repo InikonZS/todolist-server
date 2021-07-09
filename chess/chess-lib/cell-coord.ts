@@ -31,4 +31,7 @@ export class CellCoord implements ICellCoord {
       return new CellCoord(xCoord, yCoord);
     }
   }
+  equal(cell: ICellCoord): boolean {
+    return (this.x === cell.x && this.y === cell.y);
+  }
 }

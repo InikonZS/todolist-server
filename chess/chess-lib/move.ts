@@ -1,3 +1,4 @@
+import { CellCoord } from './cell-coord';
 import { ChessColor } from './chess-color';
 import { Field } from './field';
 import { Pawn } from './figures/pawn';
@@ -47,19 +48,26 @@ export class Move implements IMove {
     const resultPosition: IPosition = field.getPosition();
     const targetCell = this.getResultPosition();
     const figure = field.getFigure(this.startPosition);
-    if (!field.isFreeCell(targetCell)) {
-      resultPosition.deleteFigure(targetCell);
-    }
     if (figure) {
+      if (!field.isFreeCell(targetCell)) {
+        resultPosition.deleteFigure(targetCell);
+      }
+      if (field.pawnTresspassing !== null && figure.toString().toLowerCase() == new Pawn(ChessColor.black).toString() && field.pawnTresspassing.equal(targetCell)) {
+        resultPosition.deleteFigure(new CellCoord(targetCell.x, targetCell.y + (field.playerColor == ChessColor.white ? 1 : -1)));
+      }
       resultPosition.addFigure(targetCell, figure);
       resultPosition.deleteFigure(this.startPosition);
+      let pawnTresspassing: ICellCoord | null = null;
+      if (figure.toString().toLowerCase() == new Pawn(ChessColor.black).toString() && Math.abs(this.vector.y) == 2) {
+        pawnTresspassing = new CellCoord(this.startPosition.x, this.startPosition.y + Math.round(this.vector.y / 2));
+      }
       return new Field( resultPosition,
                         field.playerColor == ChessColor.white ? ChessColor.black : ChessColor.white,
                         field.isShortWhiteCastling,
                         field.isLongWhiteCastling,
                         field.isShortBlackCastling,
                         field.isLongBlackCastling,
-                        field.pawnTresspassing,
+                        pawnTresspassing,
                         ( figure.toString().toLowerCase() == new Pawn(ChessColor.black).toString() ||
                           resultPosition.getFiguresCount() < field.getFiguresCount()) ? 0 : field.fiftyRuleCount + 1,
                         field.moveNumber + (field.playerColor == ChessColor.black ? 1 : 0));

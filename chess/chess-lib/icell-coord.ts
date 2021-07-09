@@ -8,4 +8,5 @@ export interface ICellCoord {
   isCorrect(): boolean;
   toString(): string;
   getColor(): ChessColor;
+  equal(cell: ICellCoord): boolean;
 }
