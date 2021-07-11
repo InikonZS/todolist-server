@@ -20,6 +20,13 @@ export class COMMON {
   static DEFAULT_LOCALE = LOCALES.EN;
   static START_POSITION_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 
+  static SHORT_WHITE_CASTLING = 1;
+  static LONG_WHITE_CASTLING = 2;
+  static SHORT_BLACK_CASTLING = 4;
+  static LONG_BLACK_CASTLING = 8;
+  static ALL_CASTLING = 15;
+
+
   static FIGURE_SHORT_NAMES = new Map([
     // TODO: переписать красиво, чтобы удобно было обращаться к элементам
     [

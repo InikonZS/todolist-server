@@ -1,5 +1,6 @@
 import { CellCoord } from './cell-coord';
 import { ChessColor } from './chess-color';
+import { COMMON } from './common';
 import { Field } from './field';
 import { Pawn } from './figures/pawn';
 import { ICellCoord } from './icell-coord';
@@ -9,14 +10,14 @@ import { IPosition } from './iposition';
 import { IVector } from './ivector';
 
 export class Move implements IMove {
-  readonly startPosition: ICellCoord;
+  readonly startCell: ICellCoord;
   readonly vector: IVector;
-  constructor(startPosition: ICellCoord, vector: IVector) {
-    this.startPosition = startPosition;
+  constructor(startCell: ICellCoord, vector: IVector) {
+    this.startCell = startCell;
     this.vector = vector;
   }
-  getResultPosition(): ICellCoord {
-    return this.vector.resultPosition(this.startPosition);
+  getTargetCell(): ICellCoord {
+    return this.vector.resultPosition(this.startCell);
   }
   getNotation(field: IField): string {
     // TODO: добавить проверку на взятие фигуры
@@ -26,28 +27,49 @@ export class Move implements IMove {
     // TODO: добавить шах/мат
 
     if (this.isValid(field)) {
-      return `${field.getFigure(this.startPosition)?.toString()}${this.startPosition.toString}—${this.vector.resultPosition(this.startPosition)}`;
+      return `${field.getFigure(this.startCell)?.toString()}${this.startCell.toString()}—${this.getTargetCell().toString()}`;
     } else return 'Illegal Move';
   }
   isValid(field: IField): boolean {
     let result = false;
-    if (!field.isFreeCell(this.startPosition)) {
-      const fieldFigure = field.getFigure(this.startPosition);
+    if (!field.isFreeCell(this.startCell)) {
+      const fieldFigure = field.getFigure(this.startCell);
       if (field.playerColor === fieldFigure?.color) {
-        const fieldMoves = field.getAllowedMoves(this.startPosition);
+        const fieldMoves = field.getAllowedMoves(this.startCell);
         const legalDestinations = new Set<String>();
         for (let fieldMove of fieldMoves) {
-          legalDestinations.add(fieldMove.getResultPosition().toString());
+          legalDestinations.add(fieldMove.getTargetCell().toString());
         }
-        result = legalDestinations.has(this.getResultPosition().toString());
+        result = legalDestinations.has(this.getTargetCell().toString());
       }
     }
     return result;
   }
+  private updateCastlingFlags(castlingFlags: number, startCellString: string, targetCellString: string): number {
+    if (startCellString == 'a1' || targetCellString == 'a1') {
+      castlingFlags = castlingFlags & (COMMON.ALL_CASTLING ^ COMMON.LONG_WHITE_CASTLING);
+    }
+    if (startCellString == 'h1' || targetCellString == 'h1') {
+      castlingFlags = castlingFlags & (COMMON.ALL_CASTLING ^ COMMON.SHORT_WHITE_CASTLING);
+    }
+    if (startCellString == 'e1' || targetCellString == 'e1') {
+      castlingFlags = castlingFlags & (COMMON.ALL_CASTLING ^ COMMON.LONG_WHITE_CASTLING ^ COMMON.SHORT_WHITE_CASTLING);
+    }
+    if (startCellString == 'h8' || targetCellString == 'h8') {
+      castlingFlags = castlingFlags & (COMMON.ALL_CASTLING ^ COMMON.LONG_BLACK_CASTLING);
+    }
+    if (startCellString == 'a8' || targetCellString == 'a8') {
+      castlingFlags = castlingFlags & (COMMON.ALL_CASTLING ^ COMMON.SHORT_BLACK_CASTLING);
+    }
+    if (startCellString == 'd8' || targetCellString == 'd8') {
+      castlingFlags = castlingFlags & (COMMON.ALL_CASTLING ^ COMMON.LONG_BLACK_CASTLING ^ COMMON.SHORT_BLACK_CASTLING);
+    }
+    return castlingFlags;
+  }
   makeMove(field: IField): IField {
     const resultPosition: IPosition = field.getPosition();
-    const targetCell = this.getResultPosition();
-    const figure = field.getFigure(this.startPosition);
+    const targetCell = this.getTargetCell();
+    const figure = field.getFigure(this.startCell);
     if (figure) {
       if (!field.isFreeCell(targetCell)) {
         resultPosition.deleteFigure(targetCell);
@@ -56,26 +78,23 @@ export class Move implements IMove {
         resultPosition.deleteFigure(new CellCoord(targetCell.x, targetCell.y + (field.playerColor == ChessColor.white ? 1 : -1)));
       }
       resultPosition.addFigure(targetCell, figure);
-      resultPosition.deleteFigure(this.startPosition);
+      resultPosition.deleteFigure(this.startCell);
       let pawnTresspassing: ICellCoord | null = null;
       if (figure.toString().toLowerCase() == new Pawn(ChessColor.black).toString() && Math.abs(this.vector.y) == 2) {
-        pawnTresspassing = new CellCoord(this.startPosition.x, this.startPosition.y + Math.round(this.vector.y / 2));
+        pawnTresspassing = new CellCoord(this.startCell.x, this.startCell.y + Math.round(this.vector.y / 2));
       }
       return new Field( resultPosition,
                         field.playerColor == ChessColor.white ? ChessColor.black : ChessColor.white,
-                        field.isShortWhiteCastling,
-                        field.isLongWhiteCastling,
-                        field.isShortBlackCastling,
-                        field.isLongBlackCastling,
+                        this.updateCastlingFlags(field.castlingFlags, this.startCell.toString(), targetCell.toString()),
                         pawnTresspassing,
                         ( figure.toString().toLowerCase() == new Pawn(ChessColor.black).toString() ||
                           resultPosition.getFiguresCount() < field.getFiguresCount()) ? 0 : field.fiftyRuleCount + 1,
                         field.moveNumber + (field.playerColor == ChessColor.black ? 1 : 0));
     } else {
-      throw new Error('Error in Move.makeMove: empty start position');
+      throw new Error('Error in Move.makeMove: empty start cell');
     }
   }
   toString(): string {
-    return this.startPosition.toString() + '-' + this.vector.resultPosition(this.startPosition).toString();
+    return this.startCell.toString() + '-' + this.vector.resultPosition(this.startCell).toString();
   }
 }

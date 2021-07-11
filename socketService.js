@@ -527,7 +527,7 @@ class ChatService {
           let result = [];
           moves.forEach((move) => {
             resultStr = resultStr + move.toString() + ' ';
-            const destCoord = move.getResultPosition();
+            const destCoord = move.getTargetCell();
             result.push(new Vector(destCoord.x, destCoord.y));
           });
           console.log('chessFigureGrab() <- ', new CellCoord(coord.x, coord.y).toString(), ' -> ', resultStr);

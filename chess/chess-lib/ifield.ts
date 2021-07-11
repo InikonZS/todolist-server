@@ -9,10 +9,7 @@ import { Moves } from './moves';
 
 export interface IField {
   readonly playerColor: ChessColor;
-  readonly isShortWhiteCastling: boolean;
-  readonly isLongWhiteCastling: boolean;
-  readonly isShortBlackCastling: boolean;
-  readonly isLongBlackCastling: boolean;
+  readonly castlingFlags: number;
   readonly pawnTresspassing: CellCoord | null;
   readonly fiftyRuleCount: number;
   readonly moveNumber: number;
@@ -33,5 +30,6 @@ export interface IField {
 
   // TODO: Implement next functions
   // getRecommendMoves(): Moves;
-  // isMate(): boolean
+  // isCheck(): boolean;
+  // isMate(): boolean;
 }

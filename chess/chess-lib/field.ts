@@ -14,10 +14,7 @@ import { Position } from './position';
 export class Field implements IField {
   private position: IPosition;
   readonly playerColor: ChessColor;
-  readonly isShortWhiteCastling: boolean;
-  readonly isLongWhiteCastling: boolean;
-  readonly isShortBlackCastling: boolean;
-  readonly isLongBlackCastling: boolean;
+  readonly castlingFlags: number;
   readonly pawnTresspassing: ICellCoord | null;
   readonly fiftyRuleCount: number;
   readonly moveNumber: number;
@@ -26,20 +23,14 @@ export class Field implements IField {
   constructor(
     position: IPosition,
     playerColor: ChessColor,
-    isShortWhiteCastling: boolean = true,
-    isLongWhiteCastling: boolean = true,
-    isShortBlackCastling: boolean = true,
-    isLongBlackCastling: boolean = true,
-    pawnTresspassing: CellCoord | null = null,
-    fiftyRuleCount: number = 0,
-    moveNumber: number = 1
+    castlingFlags: number,
+    pawnTresspassing: CellCoord | null,
+    fiftyRuleCount: number,
+    moveNumber: number
   ) {
     this.position = position;
     this.playerColor = playerColor;
-    this.isShortWhiteCastling = isShortWhiteCastling;
-    this.isLongWhiteCastling = isLongWhiteCastling;
-    this.isShortBlackCastling = isShortBlackCastling;
-    this.isLongBlackCastling = isLongBlackCastling;
+    this.castlingFlags = castlingFlags;
     this.pawnTresspassing = pawnTresspassing;
     this.fiftyRuleCount = fiftyRuleCount;
     this.moveNumber = moveNumber;
@@ -50,10 +41,7 @@ export class Field implements IField {
   copy(): IField {
     return new Field( this.position.copy(), 
                       this.playerColor, 
-                      this.isShortWhiteCastling, 
-                      this.isLongWhiteCastling,
-                      this.isShortBlackCastling,
-                      this.isLongBlackCastling,
+                      this.castlingFlags,
                       this.pawnTresspassing,
                       this.fiftyRuleCount,
                       this.moveNumber);
@@ -106,7 +94,7 @@ export class Field implements IField {
     for (let figure of this.position.getAllCoordFigures()) {
       const figureMoves = this.getAllowedMoves(CellCoord.fromString(figure[0]), false);
       for (let figureMove of figureMoves) {
-        result.add(figureMove.getResultPosition().toString());
+        result.add(figureMove.getTargetCell().toString());
       }
     }
     return result;
@@ -150,11 +138,11 @@ export class Field implements IField {
       result.push(y == COMMON.BOARD_SIZE - 1 ? ' ' : '/');
     }
     result.push(this.playerColor == ChessColor.white ? 'w ' : 'b ');
-    result.push(this.isShortWhiteCastling ? 'K' : '');
-    result.push(this.isLongWhiteCastling ? 'Q' : '');
-    result.push(this.isShortBlackCastling ? 'k' : '');
-    result.push(this.isLongBlackCastling ? 'q' : '');
-    if (!(this.isShortWhiteCastling || this.isLongWhiteCastling || this.isShortBlackCastling || this.isLongBlackCastling)) {
+    result.push((this.castlingFlags & COMMON.SHORT_WHITE_CASTLING) !== 0 ? 'K' : '');
+    result.push((this.castlingFlags & COMMON.LONG_WHITE_CASTLING) !== 0 ? 'Q' : '');
+    result.push((this.castlingFlags & COMMON.SHORT_BLACK_CASTLING) !== 0 ? 'k' : '');
+    result.push((this.castlingFlags & COMMON.LONG_BLACK_CASTLING) !== 0 ? 'q' : '');
+    if (this.castlingFlags == 0) {
       result.push('-');
     }
     result.push(' ');
@@ -171,10 +159,7 @@ export class Field implements IField {
     let y = 0;
     const position = new Position();
     let playerColor: ChessColor;
-    let isShortWhiteCastling: boolean = false;
-    let isLongWhiteCastling: boolean = false;
-    let isShortBlackCastling: boolean = false;
-    let isLongBlackCastling: boolean = false;
+    let castlingFlags = 0;
     let pawnTresspassing: CellCoord | null = null;
     let fiftyRuleCount: number = 0;
     let moveNumber: number = 1;
@@ -198,16 +183,16 @@ export class Field implements IField {
         const castlingFlag = fenPartial[2].charAt(k);
         switch (castlingFlag) {
           case 'K':
-            isShortWhiteCastling = true;
+            castlingFlags = castlingFlags | COMMON.SHORT_WHITE_CASTLING;
             break;
           case 'Q':
-            isLongWhiteCastling = true;
+            castlingFlags = castlingFlags | COMMON.LONG_WHITE_CASTLING;
             break;
           case 'k':
-            isShortBlackCastling = true;
+            castlingFlags = castlingFlags | COMMON.SHORT_BLACK_CASTLING;
             break;
           case 'q':
-            isLongBlackCastling = true;
+            castlingFlags = castlingFlags | COMMON.LONG_BLACK_CASTLING;
             break;
         }
       }
@@ -217,7 +202,7 @@ export class Field implements IField {
     }
     fiftyRuleCount = Number(fenPartial[4]);
     moveNumber = Number(fenPartial[5]);
-    return new Field(position, playerColor, isShortWhiteCastling, isLongWhiteCastling, isShortBlackCastling, isLongBlackCastling, pawnTresspassing, fiftyRuleCount, moveNumber);
+    return new Field(position, playerColor, castlingFlags, pawnTresspassing, fiftyRuleCount, moveNumber);
   }
   static getStartField(): IField {
     return Field.fromFEN(COMMON.START_POSITION_FEN);

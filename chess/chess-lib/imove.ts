@@ -3,10 +3,10 @@ import { IField } from './ifield';
 import { IVector } from './ivector';
 
 export interface IMove {
-  readonly startPosition: ICellCoord;
+  readonly startCell: ICellCoord;
   readonly vector: IVector;
 
-  getResultPosition(): ICellCoord;
+  getTargetCell(): ICellCoord;
   toString(): string;
   isValid(field: IField): boolean;
   makeMove(field: IField): IField;

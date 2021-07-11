@@ -9,9 +9,9 @@ export class HistoryItem implements IHistoryItem {
   readonly endCell: ICellCoord;
   readonly time: Date;
   constructor(move: IMove, field: IField) {
-    this.figure = field.getFigure(move.startPosition).toString();
-    this.startCell = move.startPosition;
-    this.endCell = move.getResultPosition();
+    this.figure = field.getFigure(move.startCell).toString();
+    this.startCell = move.startCell;
+    this.endCell = move.getTargetCell();
     this.time = new Date();
   }
 }

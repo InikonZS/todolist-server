@@ -18,7 +18,7 @@ export class King extends Figure {
       function isDangerousMove (move: IMove): boolean {
         const newField = move.makeMove(field);
         const attackedCells = newField.getAttackedCells();
-        return attackedCells.has(move.getResultPosition().toString());
+        return attackedCells.has(move.getTargetCell().toString());
       }
       for (let vector of COMMON.DIAGONAL_MOVES) {
         let resultPosition = vector.resultPosition(position);

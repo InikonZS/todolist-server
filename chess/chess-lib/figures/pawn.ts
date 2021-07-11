@@ -14,58 +14,32 @@ export class Pawn extends Figure {
   }
   getMoves(position: CellCoord, field: IField): Moves {
     const result = new Moves();
+    const hMoves = field.playerColor == ChessColor.white ? COMMON.UP_MOVES : COMMON.DOWN_MOVES;
+    const dMoves = field.playerColor == ChessColor.white ? COMMON.UP_DIAG_MOVES : COMMON.DOWN_DIAG_MOVES;
+    const tresspassingStartRow = field.playerColor == ChessColor.white ? COMMON.BOARD_SIZE - 2 : 1;
     if (!field.isFreeCell(position) && field.getFigure(position).toString() == this.toString() && field.playerColor == this.color) {
-      if (field.playerColor == ChessColor.white) {
-        for (let vector of COMMON.UP_MOVES) {
-          let resultPosition = vector.resultPosition(position);
-          if (resultPosition.isCorrect() && field.isFreeCell(resultPosition)) {
-            result.add(new Move(position, vector));
-          }
+      for (let vector of hMoves) {
+        let resultPosition = vector.resultPosition(position);
+        if (resultPosition.isCorrect() && field.isFreeCell(resultPosition)) {
+          result.add(new Move(position, vector));
         }
-        for (let vector of COMMON.UP_DIAG_MOVES) {
-          let resultPosition = vector.resultPosition(position);
-          if (  resultPosition.isCorrect() && 
-                ((!field.isFreeCell(resultPosition) && field.getFigure(resultPosition)?.color !== this.color) ||
-                 (field.pawnTresspassing !== null && resultPosition.equal(field.pawnTresspassing)))
-             ) {
-            result.add(new Move(position, vector));
-          }
+      }
+      for (let vector of dMoves) {
+        let resultPosition = vector.resultPosition(position);
+        if (  resultPosition.isCorrect() && 
+              ((!field.isFreeCell(resultPosition) && field.getFigure(resultPosition)?.color !== this.color) ||
+               (field.pawnTresspassing !== null && resultPosition.equal(field.pawnTresspassing)))
+           ) {
+          result.add(new Move(position, vector));
         }
-        if (position.y == COMMON.BOARD_SIZE - 2) {
-          for (let vector of COMMON.UP_MOVES) {
-            if (field.isFreeCell(vector.resultPosition(position))) {
-              vector = vector.sum(vector);
-              let resultPosition = vector.resultPosition(position);
-              if (resultPosition.isCorrect() && field.isFreeCell(resultPosition)) {
-                result.add(new Move(position, vector));
-              }
-            }
-          }
-        }
-      } else {
-        for (let vector of COMMON.DOWN_MOVES) {
-          let resultPosition = vector.resultPosition(position);
-          if (resultPosition.isCorrect() && field.isFreeCell(resultPosition)) {
-            result.add(new Move(position, vector));
-          }
-        }
-        for (let vector of COMMON.DOWN_DIAG_MOVES) {
-          let resultPosition = vector.resultPosition(position);
-          if (  resultPosition.isCorrect() && 
-                ((!field.isFreeCell(resultPosition) && field.getFigure(resultPosition)?.color !== this.color) ||
-                 (field.pawnTresspassing !== null && resultPosition.equal(field.pawnTresspassing)))
-             ) {
-            result.add(new Move(position, vector));
-          }
-        }
-        if (position.y == 1) {
-          for (let vector of COMMON.DOWN_MOVES) {
-            if (field.isFreeCell(vector.resultPosition(position))) {
-              vector = vector.sum(vector);
-              let resultPosition = vector.resultPosition(position);
-              if (resultPosition.isCorrect() && field.isFreeCell(resultPosition)) {
-                result.add(new Move(position, vector));
-              }
+      }
+      if (position.y == tresspassingStartRow) {
+        for (let vector of hMoves) {
+          if (field.isFreeCell(vector.resultPosition(position))) {
+            vector = vector.sum(vector);
+            let resultPosition = vector.resultPosition(position);
+            if (resultPosition.isCorrect() && field.isFreeCell(resultPosition)) {
+              result.add(new Move(position, vector));
             }
           }
         }
